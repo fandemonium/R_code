@@ -1,3 +1,7 @@
+library("ggplot2")
+library("ggtree")
+tree<-read.tree("uclust_avg_linkage/rpf_tree_uclust.0.65.nwk")
+
 # clades (node id)
 #2827
 #2672
