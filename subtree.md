@@ -13,3 +13,8 @@ nodeLabels(geospiza) <- paste("N", nodeId(geospiza, "internal"), sep="")
 ggtree(subset(g1, node.subtree=2827)) #node.subtree: use node id
 # can also use plot(subset(....)), but ggtree is much nicer
 #ggtree(subset(g1, node.subtree=2827), branch.length='none') + geom_text(aes(label=node, size=0.5))
+
+n2827<-subset(g1, node.subtree=2827)
+
+## to plot the alignment of fasta with the tree, simply load the alignment fa by typing in the path
+msaplot(ggtree(n2827), "../../Reference Seqs/rpfHits_jones/rpfHits_hmm.faa")
