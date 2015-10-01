@@ -18,3 +18,11 @@ n2827<-subset(g1, node.subtree=2827)
 
 ## to plot the alignment of fasta with the tree, simply load the alignment fa by typing in the path
 msaplot(ggtree(n2827), "../../Reference Seqs/rpfHits_jones/rpfHits_hmm.faa")
+
+## to get tip labels:
+tipLabels(n2827)
+## to get node id (non single tip node):
+nodeId(n2827, "internal")
+
+## phylobase also display tree information like a table (but it's not). To capture the df like outpt:
+capture.output(n2827, file="test_R_output.txt")
