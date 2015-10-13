@@ -24,3 +24,6 @@ node == 2827| node==2672| node==3288| node==3467| node==3192| node==2385| node==
 ), size=5, shape=23, fill="steelblue")
 cp2<-cp1 + geom_text(aes(label=node))
 ```
+
+## to add hightlight
+cp <- p %>% hilight(node=2827, fill="steelblue", alpha=0.6) %>% hilight(node=2672, fill="darkgreen", alpha=0.6) %>% hilight(node=3288, fill="red", alpha=0.6) %>% hilight(node=3467, fill="blue", alpha=0.6) %>% hilight(node=3192, fill="purple", alpha=0.6) %>% hilight(node=2385, fill="yellow", alpha=0.6) %>% hilight(node=2259, fill="grey", alpha=0.6) %>% hilight(node=1994, fill="#999900", alpha=0.6) %>% hilight(node=1904 , fill="#FFCCCC", alpha=0.6) %>% hilight(node=1805, fill="#009999", alpha=0.6)

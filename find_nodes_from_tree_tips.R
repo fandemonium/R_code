@@ -1,5 +1,8 @@
+library(ape)
+library(phytools)
+
 oldest.mrca<-function(tree,tips){
-H<-dist.nodes(tree)
+H<-nodeHeights(tree)
    X<-mrca(tree)
    n<-length(tips)
    nodes<-height<-vector(); k<-1
