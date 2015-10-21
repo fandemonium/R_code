@@ -27,3 +27,8 @@ cp2<-cp1 + geom_text(aes(label=node))
 
 ## to add hightlight
 cp <- p %>% hilight(node=2827, fill="steelblue", alpha=0.6) %>% hilight(node=2672, fill="darkgreen", alpha=0.6) %>% hilight(node=3288, fill="red", alpha=0.6) %>% hilight(node=3467, fill="blue", alpha=0.6) %>% hilight(node=3192, fill="purple", alpha=0.6) %>% hilight(node=2385, fill="yellow", alpha=0.6) %>% hilight(node=2259, fill="grey", alpha=0.6) %>% hilight(node=1994, fill="#999900", alpha=0.6) %>% hilight(node=1904 , fill="#FFCCCC", alpha=0.6) %>% hilight(node=1805, fill="#009999", alpha=0.6)
+
+## add heatmap to tree:
+colourCount=length(unique(test$phylum))
+getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
+gheatmap(cp, test1,colnames=F, width=0.1, offset=0.1, color=test1) + scale_fill_manual(values=getPalette(colourCount))+theme(legend.text=element_text(size=20), legend.key.size=unit(1, "cm"))
