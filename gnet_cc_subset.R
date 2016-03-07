@@ -9,6 +9,7 @@ library(fdrtool)
 library(GGally)
 library(intergraph)
 library(RColorBrewer)
+library(ggplot2)
 
 args<-commandArgs(TRUE)
 
@@ -35,21 +36,25 @@ for (i in unique(strong_results$Foaming.Status)){
         vs<-df$vertexes
         vs_phyla<-merge(vs, phyla, by.x="vertex.names",by.y="genus")
         vs_phyla<-arrange(vs_phyla,intergraph_id)
-	vs_phyla$domain<-factor(vs_phyla$domain, levels=c("Bacteria", "measurements", "Archaea", "unclassified_Root", "factors"))
+	vs_phyla<-subset(vs_phyla, !grepl("Archaea|Root", domain))
+	vs_phyla$domain<-factor(vs_phyla$domain, levels=c("Bacteria", "measurements", "factors"))
         for (x in colnames(vs_phyla[, c(5, 9)])){
                 colorCount = length(unique(vs_phyla[, x]))
                 getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
                 colors = getPalette(colorCount)
+		names(colors)<-unique(vs_phyla[,x])
+#		gnet %v% "x" <- lapply(vs_phyla[, x], as.character)
+		set.vertex.attribute(gnet, "x", lapply(vs_phyla[, x], as.character))
                 pdf(paste(args[1], "_rho_", args[2], "_fs", i, "_", x, "_network.pdf", sep=""), height=10, width=12)
 
-                p<-ggnet(gnet, size=0, method="kamadakawaii")+
-			geom_point(aes(colour=vs_phyla[,x], shape=vs_phyla$domain), size=5)+
-			scale_shape_manual(values=c(16, 8, 12))+
-			scale_colour_manual(name=x, values=colors)+
-			theme_bw()+
-			theme(aspect.ratio=1)+
-			guides(col = guide_legend(ncol = 3))
-			
+                p<-ggnet2(gnet, size=5, method="kamadakawaii", color="x", palette=colors)
+#			+geom_point(aes(colour=vs_phyla[,x], shape=vs_phyla$domain), size=5)+
+#			scale_shape_manual(values=c(16, 8, 12))+
+#			scale_colour_manual(name=x, values=colors)+
+#			theme_bw()+
+#			theme(aspect.ratio=1)+
+#			guides(col = guide_legend(ncol = 3))
+#			
                 print(p)
                 dev.off()
         }
