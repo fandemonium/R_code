@@ -1,3 +1,5 @@
+## using ggnet version 1 (not ggnet2), also ggplot2 < 2.0
+
 library(Hmisc)
 library(plyr)
 library(reshape2)

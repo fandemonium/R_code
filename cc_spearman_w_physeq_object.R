@@ -80,7 +80,7 @@ for(i in 1:length(unique(final_results$trt))){
 write.table(final_stats, paste(unlist(input_name)[1], "_final_stats.txt", sep=""), sep="\t", row.names=F, quote=F)
 
 #meta<-read.delim("foaming_status_cc/meta_w_genus_information.txt", sep="\t", header=T)
-meta<-read.delim(3, sep="\t", header=T)
+meta<-read.delim(args[3], sep="\t", header=T)
 
 ## separte measurement:measurement, bacteria:bacteria interactions
 temp<-merge(final_results, meta[, c("genus", "domain")], by.x="Var1", by.y="genus")
