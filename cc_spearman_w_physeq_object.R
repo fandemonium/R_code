@@ -1,22 +1,29 @@
+library(phyloseq)
 library(Hmisc)
 library(plyr)
 library(reshape2)
 library(igraph)
 library(fdrtool)
-library(phyloseq)
 
 ### input args: 1. phyloseq RDS object; 2. the last column that is a factor; 
 args<-commandArgs(TRUE)
-input_name<-strsplit(as.character(args[1]), ".", fixed=T)
+input_path<-unlist(strsplit(as.character(args[1]), "/", fixed=T))
+full_name<-input_path[length(input_path)]
+input_name<-strsplit(as.character(full_name), ".", fixed=T)
 
 # phyloseq RDS object 
 physeq<-readRDS(args[1])
 print(physeq)
 
-# at OTU level:
-totu<-t(data.frame(otu_table(physeq)))
+# at genus level:
+physeq<-tax_glom(physeq, "genus")
+physeq<-subset_taxa(physeq, domain!="Archaea" & domain!="unclassified_Root")
+
+otu<-data.frame(otu_table(physeq))
 si<-data.frame(sample_data(physeq))
 tax<-data.frame(tax_table(physeq))
+row.names(otu)<-tax$genus
+totu<-data.frame(t(otu))
 
 # merging sample information and otu table:
 dataset<-merge(si, totu, by.x="SAMPLES", by.y="row.names")
@@ -51,7 +58,7 @@ for(i in 1:length(treatments)){
 	print(paste("finished ",treatments[i],sep=""))
 }
 # you can write the results out into a flat tab delimited table
-#write.table(final_results, paste(unlist(input_name)[1], "_final_results.txt", sep=""), sep="\t", row.names=F, quote=F)
+write.table(final_results, paste(unlist(input_name)[1], "_final_results.txt", sep=""), sep="\t", row.names=F, quote=F)
 
 # now we can calculate stats for the network
 final_stats<-data.frame()
@@ -70,5 +77,19 @@ for(i in 1:length(unique(final_results$trt))){
 	print(paste("finished ",as.vector(unique(final_results$trt))[i],sep=""))
 }
 # you can write the results out into a flat tab delimited table
-#write.table(final_stats, paste(unlist(input_name)[1], "_final_stats.txt", sep=""), sep="\t", row.names=F, quote=F)
+write.table(final_stats, paste(unlist(input_name)[1], "_final_stats.txt", sep=""), sep="\t", row.names=F, quote=F)
+
+#meta<-read.delim("foaming_status_cc/meta_w_genus_information.txt", sep="\t", header=T)
+meta<-read.delim(3, sep="\t", header=T)
+
+## separte measurement:measurement, bacteria:bacteria interactions
+temp<-merge(final_results, meta[, c("genus", "domain")], by.x="Var1", by.y="genus")
+temp<-merge(temp, meta[, c("genus", "domain")], by.x="Var2", by.y="genus")
+## bacteria to bacteria
+bac.bac<-subset(temp, domain.x=="Bacteria" & domain.y=="Bacteria")[, 1:6]
+## bacteria to measurements
+bac.m<-rbind(subset(temp, domain.x=="Bacteria" & domain.y=="measurements")[, 1:6], subset(temp, domain.y=="Bacteria" & domain.x=="measurements")[, 1:6])
+
+write.table(bac.bac, paste(unlist(input_name)[1], "_final_results_bac_bac.txt", sep=""), sep="\t", row.names=F, quote=F)
+write.table(bac.m, paste(unlist(input_name)[1], "_final_results_bac_measurements.txt", sep=""), sep="\t", row.names=F, quote=F)
 
