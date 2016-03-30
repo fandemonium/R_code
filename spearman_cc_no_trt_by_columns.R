@@ -20,10 +20,10 @@ input_name<-strsplit(as.character(args[1]), ".", fixed=T)
 
 # R output df
 df<-read.table(args[1],header=T,sep="\t",check.names=F)
-dataset<-data.frame(t(df))
+dataset<-df
 #names(dataset)<-dataset["strain", ]
 	# making an object that has all the results in it (both rho and P values)
-results<-rcorr(as.matrix(dataset[-c(1:args[2]), ]),type="spearman")
+results<-rcorr(as.matrix(dataset[, -c(1:args[2])]),type="spearman")
 #results<-rcorr(as.matrix(dataset),type="spearman")
 	#make two seperate objects for p-value and correlation coefficients
 rhos<-results$r
@@ -44,7 +44,7 @@ rhos_melt<-na.omit(melt(rhos))
 names(rhos_melt)[3]<-"rho"
 	#merging together and remove negative rhos
 final_results<-merge(ps_sub,subset(rhos_melt, rho > 0),by=c("Var1","Var2"))
-write.table(final_results, paste(unlist(input_name)[1], "_final_results.txt", sep=""), sep="\t", row.names=F, quote=F)
+#write.table(final_results, paste(unlist(input_name)[1], "_final_results.txt", sep=""), sep="\t", row.names=F, quote=F)
 
 # now we can calculate stats for the network
 temp.graph<-(graph.edgelist(as.matrix(final_results[,c(1,2)]),directed=FALSE))
@@ -55,17 +55,17 @@ names(final_stats)<-c("otus","norm_degree","betweenness")
 final_stats$clustering_coeff<-igraph::transitivity(temp.graph,type="global")
 final_stats$clustering_coeff_rand<-igraph::transitivity(igraph::erdos.renyi.game(length(V(temp.graph)),length(E(temp.graph)),type="gnm"))
 final_stats$cluster_ratio<-final_stats$clustering_coeff/final_stats$clustering_coeff_rand
-write.table(final_stats, paste(unlist(input_name)[1], "_final_stats.txt", sep=""), sep="\t", row.names=F, quote=F)
+#write.table(final_stats, paste(unlist(input_name)[1], "_final_stats.txt", sep=""), sep="\t", row.names=F, quote=F)
 
-# evaluate histogram
-# subset for strong cooccurring items
+## evaluate histogram
+## subset for strong cooccurring items
 strong_results<-subset(final_results, rho >= args[3])
 
-pdf(paste(unlist(input_name)[1], "_rho_", args[3], "_histo.pdf", sep=""))
-h<-hist(strong_results$rho)
-h$density<-h$counts/sum(h$counts)*100
-print(plot(h, freq=FALSE, ylab='Percentage'))
-dev.off()
+#pdf(paste(unlist(input_name)[1], "_rho_", args[3], "_histo.pdf", sep=""))
+#h<-hist(strong_results$rho)
+#h$density<-h$counts/sum(h$counts)*100
+#print(plot(h, freq=FALSE, ylab='Percentage'))
+#dev.off()
 
 temp.graph<-(graph.edgelist(as.matrix(strong_results[,c(1,2)]),directed=FALSE))
 E(temp.graph)$weight<-strong_results$rho
@@ -73,35 +73,27 @@ temp.graph<-simplify(temp.graph)
 gnet<-asNetwork(temp.graph)
 df<-asDF(gnet)
 vs<-df$vertexes
-vs_phyla<-merge(vs, data.frame(t(dataset[1:16, ])), by.x="vertex.names",by.y="row.names")
+vs_phyla<-vs
 vs_phyla<-arrange(vs_phyla,intergraph_id)
 
-# creating a new group
-cols<-colnames(vs_phyla)[7:19]
-vs_phyla$group<-apply(vs_phyla[, cols], 1, paste, collapse="_")
 
-
-## plot with a for loop if need multiple columns to be plotted:
-for (x in colnames(vs_phyla[, c(4, 7:20)])){
-## index the desired coloring group, in this case "vs_phyla$group1"
-	group<-data.frame(unique(vs_phyla[, x]))
+## index the desired coloring group, in this case "vs_phyla$vertex.names"
+	group<-data.frame(unique(vs_phyla$vertex.names))
 	group$index<-seq(1, length(group[, 1]))
-	colnames(group)[1]<-x
-	vs_phyla_temp<-merge(vs_phyla, group, x)
+	colnames(group)[1]<-"vertex.names"
+	vs_phyla_temp<-merge(vs_phyla, group, "vertex.names")
 ## change gnet vertex.name to color index
 	network.vertex.names(gnet)<-vs_phyla_temp$index
 ## add color index to legend labeling
-	vs_phyla_temp$index_group<-paste(vs_phyla_temp$index, vs_phyla_temp[, x], sep="_")	
+	vs_phyla_temp$index_group<-paste(vs_phyla_temp$index, vs_phyla_temp$vertex.names, sep="_")	
 	colorCount = length(unique(vs_phyla_temp[, "index_group"]))
 	getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
 	colors = getPalette(colorCount)
 	names(colors)<-unique(vs_phyla_temp[,"index_group"])
 	gnet %v% "index_group" <- lapply(vs_phyla_temp[, "index_group"], as.character)
 #	set.vertex.attribute(gnet, "x", lapply(vs_phyla_temp[, x], as.character))
-        pdf(paste(args[1], "_rho_", args[3], "_", x, "_network.pdf", sep=""), height=10, width=12)
+        pdf(paste(args[1], "_rho_", args[3], "_measurements", "_network.pdf", sep=""), height=10, width=12)
 
         p<-ggnet2(gnet, label=T, size=8, color="index_group", palette=colors)
 	print(p)
         dev.off()
-}
-
