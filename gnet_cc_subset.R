@@ -41,31 +41,32 @@ for (i in unique(strong_results$trt)){
         gnet<-asNetwork(temp.graph)
         df<-asDF(gnet)
         vs<-df$vertexes
-        vs_phyla<-merge(vs, phyla, by.x="vertex.names",by.y="genus")
-        vs_phyla<-arrange(vs_phyla,intergraph_id)
-	vs_phyla<-subset(vs_phyla, !grepl("Archaea|Root", domain))
-	vs_phyla$domain<-factor(vs_phyla$domain, levels=c("Bacteria", "measurements", "factors"))
+
+	## in order to have synchronized color among figures, a set of color has to be generated for everything in group1 first 
+	## group2 is essentially the same as group1, so one set of colors is enough here
+	for (x in colnames(phyla[, c(7, 8)])){
+		colorCount = length(unique(phyla[, x]))
+		getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
+		colors = getPalette(colorCount)
+		## index the desired coloring group, in this case "vs_phyla$group1"
+		to_index<-data.frame(unique(phyla[, x]))
+		to_index$index<-seq(1, length(to_index[, 1]))
+		colnames(to_index)[1]<-x
+		phyla_temp<-merge(phyla, to_index, x)
+		phyla_temp$index_group<-paste(phyla_temp$index, phyla_temp[, x], sep="_")
+		names(colors)<-unique(phyla_temp$index_group)
 	
-## index the desired coloring group, in this case "vs_phyla$group1"
-	group1<-data.frame(unique(vs_phyla$group1))
-	group1$index<-seq(1, length(group1[, 1]))
-	colnames(group1)[1]<-"group1"
-	vs_phyla<-merge(vs_phyla, group1, "group1")
-## change gnet vertex.name to color index
-	network.vertex.names(gnet)<-vs_phyla$index
-## add color index to legend labeling
-	vs_phyla$index_group1<-paste(vs_phyla$index, vs_phyla$group1, sep="_")	
+	        vs_phyla<-merge(vs, phyla_temp, by.x="vertex.names",by.y="genus")
+	        vs_phyla<-arrange(vs_phyla,intergraph_id)
+		vs_phyla<-subset(vs_phyla, !grepl("Archaea|Root", domain))
+		vs_phyla$domain<-factor(vs_phyla$domain, levels=c("Bacteria", "measurements", "factors"))
 
-## plot with a for loop if need multiple columns to be plotted:
-#        for (x in colnames(vs_phyla[, c(5, 9)])){
-                colorCount = length(unique(vs_phyla[, "index_group1"]))
-                getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
-                colors = getPalette(colorCount)
-		names(colors)<-unique(vs_phyla[,"index_group1"])
-		gnet %v% "index_group1" <- lapply(vs_phyla[, "index_group1"], as.character)
+		## change gnet vertex.name to color index
+		network.vertex.names(gnet)<-vs_phyla$index
+		gnet %v% "index_group" <- lapply(vs_phyla[, "index_group"], as.character)
 #		set.vertex.attribute(gnet, "x", lapply(vs_phyla[, x], as.character))
-                pdf(paste(unlist(input_name)[1], "_rho_", args[2], "_fs", i, "_", x, "_network.pdf", sep=""), height=10, width=12)
 
+                pdf(paste(unlist(input_name)[1], "_rho_", args[2], "_fs", i,"_",x, "_network.pdf", sep=""), height=10, width=12)
                 p<-ggnet2(gnet, label=T, size=8, color="index_group", shape="domain", palette=colors)
 		print(p)
                 dev.off()
