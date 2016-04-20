@@ -36,23 +36,43 @@ for(i in 1:length(treatments)){
 	#subset the data for a particular treatment
 	temp<-subset(dataset, Foaming.Status==treatments[i])
 	# making an object that has all the results in it (both rho and P values)
-	results<-rcorr(as.matrix(temp[,-c(1:args[2])]),type="spearman")
+	results_sp<-rcorr(as.matrix(temp[,-c(1:args[2])]),type="spearman")
+	results_hd<-hoeffd(as.matrix(temp[,-c(1:args[2])])
+
 	#make two seperate objects for p-value and correlation coefficients
-	rhos<-results$r
-	ps<-results$P
+	rhos<-results_sp$r
+	sp_ps<-results_sp$P
+	ds<-results_hd$D
+	ds_ps<-results_hd$P
+	
 	# going to melt these objects to 'long form' where the first two columns make up the pairs of OTUs, I am also removing NA's as they are self-comparisons, not enough data, other bad stuff
-	ps_melt<-na.omit(melt(ps))
+	sp_melt<-na.omit(melt(sp_ps))
+	ds_melt<-na.omit(melt(ds_ps))
+
 	#creating a qvalue (adjusted pvalue) based on FDR
-	ps_melt$qval<-fdrtool(ps_melt$value, statistic="pvalue", plot=F,verbose=F)$qval
+	sp_melt$spearman_qval<-fdrtool(sp_melt$value, statistic="pvalue", plot=F,verbose=F)$qval
+	ds_melt$hoeffding_qval<-fdrtool(ds_melt$value, statistic="pvalue", plot=F,verbose=F)$qval
 	#making column names more relevant
-	names(ps_melt)[3]<-"pval"
+	names(sp_melt)[3]<-"spearman_pval"
+	names(ds_melt)[3]<-"hoeffding_pval"
+
 	# if you are of the opinion that it is a good idea to subset your network based on adjusted P-values (qval in this case), you can then subset here
-	ps_sub<-subset(ps_melt, qval < 0.05)
+	sp_sub<-subset(sp_melt, spearman_qval < 0.05)
+	ds_sub<-subset(ds_melt, hoeffding_qval < 0.05)
+
 	# now melting the rhos, note the similarity between ps_melt and rhos_melt
 	rhos_melt<-na.omit(melt(rhos))
+	ds_melt<-na.omit(melt(ds))
+	
 	names(rhos_melt)[3]<-"rho"
+	names(ds_melt)[3]<-"D"
+	
+	
 	#merging together and remove negative rhos
-	merged<-merge(ps_sub,subset(rhos_melt, rho > 0),by=c("Var1","Var2"))
+	sp_merged<-merge(sp_sub,rhos_melt,by=c("Var1","Var2"))
+	ds_merged<-merge(ds_sub, ds_melt,by=c("Var1","Var2"))
+	merged<-merge(sp_merged, ds_merged, by=c("Var1", "Var2")
+
 	merged$trt<-treatments[i]
 	final_results<-rbind(final_results, merged)
 	print(paste("finished ",treatments[i],sep=""))
