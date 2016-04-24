@@ -21,6 +21,7 @@ physeq<-subset_taxa(physeq, domain!="Archaea" & domain!="unclassified_Root")
 
 combined_barn_cc<-data.frame()
 for (i in unique(data.frame(sample_data(physeq))$id)){
+	tryCatch({
 	physeq_sub<-subset_samples(physeq, id==i)
 	physeq_sub<-prune_taxa(taxa_sums(physeq_sub)>0, physeq_sub)
 
@@ -34,12 +35,10 @@ for (i in unique(data.frame(sample_data(physeq))$id)){
 	dataset<-merge(si, totu, by.x="SAMPLES", by.y="row.names")
 	print(dim(dataset))
 	
-	# co-occurrence by Foaming.Status
-	#subset the data for a particular treatment
-	temp<-subset(dataset, Foaming.Status==treatments[i])
+	temp<-dataset[,-c(1:20, 107:116)]
 	# making an object that has all the results in it (both rho and P values)
-	results_sp<-rcorr(as.matrix(temp[,-c(1:20, 107:116)]),type="spearman")
-	results_hd<-hoeffd(as.matrix(temp[,-c(1:20, 107:116])])
+	results_sp<-rcorr(as.matrix(temp),type="spearman")
+	results_hd<-hoeffd(as.matrix(temp))
 	
 	#make two seperate objects for p-value and correlation coefficients
 	rhos<-results_sp$r
@@ -79,7 +78,8 @@ for (i in unique(data.frame(sample_data(physeq))$id)){
 	
 	merged$id<-i
 	combined_barn_cc<-rbind(combined_barn_cc, merged)
-	print(paste("finished ",treatments[i],sep=""))
+	print(paste("finished ",i,sep=""))
+	}, error=function(e){cat("ERROR :", conditionMessage(e), "\n")})
 }
 	
 # you can write the results out into a flat tab delimited table
@@ -103,18 +103,21 @@ write.table(combined_barn_cc, paste(unlist(input_name)[1], "_combined_barn_cc_re
 #}
 ## you can write the results out into a flat tab delimited table
 #write.table(final_stats, paste(unlist(input_name)[1], "_final_stats.txt", sep=""), sep="\t", row.names=F, quote=F)
-#
-##meta<-read.delim("foaming_status_cc/meta_w_genus_information.txt", sep="\t", header=T)
-#meta<-read.delim(args[3], sep="\t", header=T)
-#
-### separte measurement:measurement, bacteria:bacteria interactions
-#temp<-merge(final_results, meta[, c("genus", "domain")], by.x="Var1", by.y="genus")
-#temp<-merge(temp, meta[, c("genus", "domain")], by.x="Var2", by.y="genus")
-### bacteria to bacteria
-#bac.bac<-subset(temp, domain.x=="Bacteria" & domain.y=="Bacteria")[, 1:6]
-### bacteria to measurements
-#bac.m<-rbind(subset(temp, domain.x=="Bacteria" & domain.y=="measurements")[, 1:6], subset(temp, domain.y=="Bacteria" & domain.x=="measurements")[, 1:6])
-#
-#write.table(bac.bac, paste(unlist(input_name)[1], "_final_results_bac_bac.txt", sep=""), sep="\t", row.names=F, quote=F)
-#write.table(bac.m, paste(unlist(input_name)[1], "_final_results_bac_measurements.txt", sep=""), sep="\t", row.names=F, quote=F)
-#
+
+##combined_cc<-read.delim("test/all_valid_samples_min_taxasums_5_min_seq_10k_physeq_combined_barn_cc_results.txt", sep="\t", header=T)
+#combined_cc<-read.delim(args[1], sep="\t", header=T)
+
+#meta<-read.delim("foaming_status_cc/meta_w_genus_information.txt", sep="\t", header=T)
+meta<-read.delim(args[2], sep="\t", header=T)
+
+## separte measurement:measurement, bacteria:bacteria interactions
+temp<-merge(combined_barn_cc, meta[, c("genus", "domain")], by.x="Var1", by.y="genus")
+temp<-merge(temp, meta[, c("genus", "domain")], by.x="Var2", by.y="genus")
+## bacteria to bacteria
+bac.bac<-subset(temp, domain.x=="Bacteria" & domain.y=="Bacteria")[, 1:9]
+## bacteria to measurements
+bac.m<-rbind(subset(temp, domain.x=="Bacteria" & domain.y=="measurements")[, 1:9], subset(temp, domain.y=="Bacteria" & domain.x=="measurements")[, 1:9])
+
+write.table(bac.bac, paste(unlist(input_name)[1], "_combined_cc_bac_bac.txt", sep=""), sep="\t", row.names=F, quote=F)
+write.table(bac.m, paste(unlist(input_name)[1], "_combined_cc_bac_measurements.txt", sep=""), sep="\t", row.names=F, quote=F)
+
