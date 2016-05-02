@@ -83,7 +83,7 @@ for (i in unique(data.frame(sample_data(physeq))$id)){
 }
 	
 # you can write the results out into a flat tab delimited table
-write.table(combined_barn_cc, paste(unlist(input_name)[1], "_combined_barn_cc_results.txt", sep=""), sep="\t", row.names=F, quote=F)
+write.table(combined_barn_cc, paste(unlist(input_name)[1], "_combined_barn_RelaAbun_cc_results.txt", sep=""), sep="\t", row.names=F, quote=F)
 
 ## now we can calculate stats for the network
 #final_stats<-data.frame()
@@ -118,6 +118,6 @@ bac.bac<-subset(temp, domain.x=="Bacteria" & domain.y=="Bacteria")[, 1:9]
 ## bacteria to measurements
 bac.m<-rbind(subset(temp, domain.x=="Bacteria" & domain.y=="measurements")[, 1:9], subset(temp, domain.y=="Bacteria" & domain.x=="measurements")[, 1:9])
 
-write.table(bac.bac, paste(unlist(input_name)[1], "_combined_cc_bac_bac.txt", sep=""), sep="\t", row.names=F, quote=F)
-write.table(bac.m, paste(unlist(input_name)[1], "_combined_cc_bac_measurements.txt", sep=""), sep="\t", row.names=F, quote=F)
+write.table(bac.bac, paste(unlist(input_name)[1], "_combined_RelaAbun_cc_bac_bac.txt", sep=""), sep="\t", row.names=F, quote=F)
+write.table(bac.m, paste(unlist(input_name)[1], "_combined_RelaAbun_cc_bac_measurements.txt", sep=""), sep="\t", row.names=F, quote=F)
 

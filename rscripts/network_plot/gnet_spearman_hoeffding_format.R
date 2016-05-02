@@ -72,7 +72,7 @@ for (i in unique(strong_results$category)){
 #		set.vertex.attribute(gnet, "x", lapply(vs_phyla[, x], as.character))
 		set.edge.attribute(gnet, "lty", ifelse(gnet %e% "weight" > 0, 1, 2))
 
-                pdf(paste(unlist(input_name)[1], "_rho_0.65", "_foaming_category_", i,"_",x, "_network.pdf", sep=""), height=10, width=18)
+                pdf(paste(unlist(input_name)[1], "_D_0.65", "_foaming_category_", i,"_",x, "_network.pdf", sep=""), height=10, width=18)
                 p<-ggnet2(gnet, label=T, size=8, color="index_group", shape="type", shape.palette=c("Bacteria" = 16, "measurements" = 17, "factors"=15), edge.lty="lty", edge.color="black") + scale_color_manual(values=colors, guide=guide_legend(override.aes=list(size=6.5)))
 		print(p)
                 dev.off()
