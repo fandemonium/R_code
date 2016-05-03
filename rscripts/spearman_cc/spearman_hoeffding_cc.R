@@ -16,7 +16,7 @@ physeq<-readRDS(args[1])
 print(physeq)
 
 # at genus level:
-physeq<-tax_glom(physeq, "genus")
+#physeq<-tax_glom(physeq, "genus")
 physeq<-subset_taxa(physeq, domain!="Archaea" & domain!="unclassified_Root")
 
 combined_barn_cc<-data.frame()
@@ -27,8 +27,8 @@ for (i in unique(data.frame(sample_data(physeq))$id)){
 
 	otu<-data.frame(otu_table(physeq_sub))
 	si<-data.frame(sample_data(physeq_sub))
-	tax<-data.frame(tax_table(physeq_sub))
-	row.names(otu)<-tax$genus
+#	tax<-data.frame(tax_table(physeq_sub))
+#	row.names(otu)<-tax$genus
 	totu<-data.frame(t(otu))
 	
 	# merging sample information and otu table:
@@ -83,41 +83,41 @@ for (i in unique(data.frame(sample_data(physeq))$id)){
 }
 	
 # you can write the results out into a flat tab delimited table
-write.table(combined_barn_cc, paste(unlist(input_name)[1], "_combined_barn_RelaAbun_cc_results.txt", sep=""), sep="\t", row.names=F, quote=F)
+write.table(combined_barn_cc, paste(unlist(input_name)[1], "_combined_barn_RelaAbun_cc_results_otu.txt", sep=""), sep="\t", row.names=F, quote=F)
 
-## now we can calculate stats for the network
-#final_stats<-data.frame()
-#for(i in 1:length(unique(final_results$trt))){
-#	temp<-subset(final_results, trt==as.vector(unique(final_results$trt))[i])
-#	temp.graph<-(graph.edgelist(as.matrix(temp[,c(1,2)]),directed=FALSE))
-#	E(temp.graph)$weight<-temp$rho
-#	temp.graph<-simplify(temp.graph)
-#	stats<-data.frame(row.names((as.matrix(igraph::degree(temp.graph,normalized=TRUE)))),(as.matrix(igraph::degree(temp.graph,normalized=TRUE))),(as.matrix(igraph::betweenness(temp.graph))))
-#	names(stats)<-c("otus","norm_degree","betweenness")
-#	stats$trt<-as.vector(unique(final_results$trt))[i]
-#	stats$clustering_coeff<-igraph::transitivity(temp.graph,type="global")
-#	stats$clustering_coeff_rand<-igraph::transitivity(igraph::erdos.renyi.game(length(V(temp.graph)),length(E(temp.graph)),type="gnm"))
-#	stats$cluster_ratio<-stats$clustering_coeff/stats$clustering_coeff_rand
-#	final_stats<-rbind(final_stats,stats)
-#	print(paste("finished ",as.vector(unique(final_results$trt))[i],sep=""))
-#}
-## you can write the results out into a flat tab delimited table
-#write.table(final_stats, paste(unlist(input_name)[1], "_final_stats.txt", sep=""), sep="\t", row.names=F, quote=F)
-
-##combined_cc<-read.delim("test/all_valid_samples_min_taxasums_5_min_seq_10k_physeq_combined_barn_cc_results.txt", sep="\t", header=T)
-#combined_cc<-read.delim(args[1], sep="\t", header=T)
-
-#meta<-read.delim("foaming_status_cc/meta_w_genus_information.txt", sep="\t", header=T)
-meta<-read.delim(args[2], sep="\t", header=T)
-
-## separte measurement:measurement, bacteria:bacteria interactions
-temp<-merge(combined_barn_cc, meta[, c("genus", "domain")], by.x="Var1", by.y="genus")
-temp<-merge(temp, meta[, c("genus", "domain")], by.x="Var2", by.y="genus")
-## bacteria to bacteria
-bac.bac<-subset(temp, domain.x=="Bacteria" & domain.y=="Bacteria")[, 1:9]
-## bacteria to measurements
-bac.m<-rbind(subset(temp, domain.x=="Bacteria" & domain.y=="measurements")[, 1:9], subset(temp, domain.y=="Bacteria" & domain.x=="measurements")[, 1:9])
-
-write.table(bac.bac, paste(unlist(input_name)[1], "_combined_RelaAbun_cc_bac_bac.txt", sep=""), sep="\t", row.names=F, quote=F)
-write.table(bac.m, paste(unlist(input_name)[1], "_combined_RelaAbun_cc_bac_measurements.txt", sep=""), sep="\t", row.names=F, quote=F)
-
+### now we can calculate stats for the network
+##final_stats<-data.frame()
+##for(i in 1:length(unique(final_results$trt))){
+##	temp<-subset(final_results, trt==as.vector(unique(final_results$trt))[i])
+##	temp.graph<-(graph.edgelist(as.matrix(temp[,c(1,2)]),directed=FALSE))
+##	E(temp.graph)$weight<-temp$rho
+##	temp.graph<-simplify(temp.graph)
+##	stats<-data.frame(row.names((as.matrix(igraph::degree(temp.graph,normalized=TRUE)))),(as.matrix(igraph::degree(temp.graph,normalized=TRUE))),(as.matrix(igraph::betweenness(temp.graph))))
+##	names(stats)<-c("otus","norm_degree","betweenness")
+##	stats$trt<-as.vector(unique(final_results$trt))[i]
+##	stats$clustering_coeff<-igraph::transitivity(temp.graph,type="global")
+##	stats$clustering_coeff_rand<-igraph::transitivity(igraph::erdos.renyi.game(length(V(temp.graph)),length(E(temp.graph)),type="gnm"))
+##	stats$cluster_ratio<-stats$clustering_coeff/stats$clustering_coeff_rand
+##	final_stats<-rbind(final_stats,stats)
+##	print(paste("finished ",as.vector(unique(final_results$trt))[i],sep=""))
+##}
+### you can write the results out into a flat tab delimited table
+##write.table(final_stats, paste(unlist(input_name)[1], "_final_stats.txt", sep=""), sep="\t", row.names=F, quote=F)
+#
+###combined_cc<-read.delim("test/all_valid_samples_min_taxasums_5_min_seq_10k_physeq_combined_barn_cc_results.txt", sep="\t", header=T)
+##combined_cc<-read.delim(args[1], sep="\t", header=T)
+#
+##meta<-read.delim("foaming_status_cc/meta_w_genus_information.txt", sep="\t", header=T)
+#meta<-read.delim(args[2], sep="\t", header=T)
+#
+### separte measurement:measurement, bacteria:bacteria interactions
+#temp<-merge(combined_barn_cc, meta[, c("genus", "domain")], by.x="Var1", by.y="genus")
+#temp<-merge(temp, meta[, c("genus", "domain")], by.x="Var2", by.y="genus")
+### bacteria to bacteria
+#bac.bac<-subset(temp, domain.x=="Bacteria" & domain.y=="Bacteria")[, 1:9]
+### bacteria to measurements
+#bac.m<-rbind(subset(temp, domain.x=="Bacteria" & domain.y=="measurements")[, 1:9], subset(temp, domain.y=="Bacteria" & domain.x=="measurements")[, 1:9])
+#
+#write.table(bac.bac, paste(unlist(input_name)[1], "_combined_RelaAbun_cc_bac_bac.txt", sep=""), sep="\t", row.names=F, quote=F)
+#write.table(bac.m, paste(unlist(input_name)[1], "_combined_RelaAbun_cc_bac_measurements.txt", sep=""), sep="\t", row.names=F, quote=F)
+#
