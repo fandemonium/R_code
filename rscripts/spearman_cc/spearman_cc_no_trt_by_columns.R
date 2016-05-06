@@ -3,97 +3,62 @@ library(plyr)
 library(reshape2)
 library(igraph)
 library(fdrtool)
-library(GGally)
-library(intergraph)
-library(RColorBrewer)
-library(ggplot2)
-library(network)
-library(sna)
 
-## input in terminal: Rscript ~/Documents/repos/code/R/spearman_cc_no_trt.R strain_data.txt 16 0.94
-## args[1]: tab delimited data table, located in "/Users/fanyang/Box\ Sync/Projects/Others/Jarboe/strain_data.txt"
-## args[2]: last row where the data is factor: 16 in this case
-## args[3]: rho number indicating strong correlation or to subset
-
+### input args: 1. phyloseq RDS object; 
 args<-commandArgs(TRUE)
-input_name<-strsplit(as.character(args[1]), ".", fixed=T)
+input_path<-unlist(strsplit(as.character(args[1]), "/", fixed=T))
+full_name<-input_path[length(input_path)]
+input_name<-strsplit(as.character(full_name), ".", fixed=T)
 
-# R output df
-df<-read.table(args[1],header=T,sep="\t",check.names=F)
-dataset<-df
-#names(dataset)<-dataset["strain", ]
+# phyloseq RDS object 
+dataset<-read.delim(args[1], sep="\t", header=T)
+print(dim(dataset))
+
+	tryCatch({
+	temp<-dataset[,-1]
 	# making an object that has all the results in it (both rho and P values)
-results<-rcorr(as.matrix(dataset[, -c(1:args[2])]),type="spearman")
-#results<-rcorr(as.matrix(dataset),type="spearman")
-	#make two seperate objects for p-value and correlation coefficients
-rhos<-results$r
-ps<-results$P
-	# going to melt these objects to 'long form' where the first two columns make up the pairs of OTUs, I am also removing NA's as they are self-comparisons, not enough data, other bad stuff
-ps_melt<-na.omit(melt(ps))
-	#creating a qvalue based on FDR
-#ps_melt$qval<-fdrtool(ps_melt$value, statistic="pvalue", plot=F,verbose=F)$qval
-	# in case of too few points, use p.adjust function instead
-ps_melt$qval<-p.adjust(ps_melt$value, "fdr")
-	#making column names more relevant
+	results_sp<-rcorr(as.matrix(temp),type="spearman")
+#	results_hd<-hoeffd(as.matrix(temp))
 	
-names(ps_melt)[3]<-"pval"
+	#make two seperate objects for p-value and correlation coefficients
+	rhos<-results_sp$r
+	sp_ps<-results_sp$P
+#	ds<-results_hd$D
+#	ds_ps<-results_hd$P
+	
+	# going to melt these objects to 'long form' where the first two columns make up the pairs of OTUs, I am also removing NA's as they are self-comparisons, not enough data, other bad stuff
+	sp_melt<-na.omit(melt(sp_ps))
+#	ds_melt<-na.omit(melt(ds_ps))
+	
+	#creating a qvalue (adjusted pvalue) based on FDR
+#	sp_melt$spearman_qval<-p.adjust(sp_melt$value, "fdr")
+#	ds_melt$hoeffding_qval<-p.adjust(ds_melt$value, "fdr")
+	sp_melt$spearman_qval<-fdrtool(sp_melt$value, statistic="pvalue", plot=F,verbose=F)$qval
+#	ds_melt$hoeffding_qval<-fdrtool(ds_melt$value, statistic="pvalue", plot=F,verbose=F)$qval
+	
+	#making column names more relevant
+	names(sp_melt)[3]<-"spearman_pval"
+#	names(ds_melt)[3]<-"hoeffding_pval"
+	
 	# if you are of the opinion that it is a good idea to subset your network based on adjusted P-values (qval in this case), you can then subset here
-ps_sub<-subset(ps_melt, qval < 0.05)
+	sp_sub<-subset(sp_melt, spearman_qval < 0.05)
+#	ds_sub<-subset(ds_melt, hoeffding_qval < 0.05)
+	
 	# now melting the rhos, note the similarity between ps_melt and rhos_melt
-rhos_melt<-na.omit(melt(rhos))
-names(rhos_melt)[3]<-"rho"
-	#merging together and remove negative rhos
-final_results<-merge(ps_sub,subset(rhos_melt, rho > 0),by=c("Var1","Var2"))
-#write.table(final_results, paste(unlist(input_name)[1], "_final_results.txt", sep=""), sep="\t", row.names=F, quote=F)
+	rhos_melt<-na.omit(melt(rhos))
+#	ds_melt<-na.omit(melt(ds))
+	
+	names(rhos_melt)[3]<-"rho"
+#	names(ds_melt)[3]<-"D"
+	
+	#merging together 
+	sp_merged<-merge(sp_sub,rhos_melt,by=c("Var1","Var2"))
+#	ds_merged<-merge(ds_sub, ds_melt,by=c("Var1","Var2"))
+#	merged<-merge(sp_merged, ds_merged, by=c("Var1", "Var2"))
+	
+	}, error=function(e){cat("ERROR :", conditionMessage(e), "\n")})
 
-# now we can calculate stats for the network
-temp.graph<-(graph.edgelist(as.matrix(final_results[,c(1,2)]),directed=FALSE))
-E(temp.graph)$weight<-final_results$rho
-temp.graph<-simplify(temp.graph)
-final_stats<-data.frame(row.names((as.matrix(igraph::degree(temp.graph,normalized=TRUE)))),(as.matrix(igraph::degree(temp.graph,normalized=TRUE))),(as.matrix(igraph::betweenness(temp.graph))))
-names(final_stats)<-c("otus","norm_degree","betweenness")
-final_stats$clustering_coeff<-igraph::transitivity(temp.graph,type="global")
-final_stats$clustering_coeff_rand<-igraph::transitivity(igraph::erdos.renyi.game(length(V(temp.graph)),length(E(temp.graph)),type="gnm"))
-final_stats$cluster_ratio<-final_stats$clustering_coeff/final_stats$clustering_coeff_rand
-#write.table(final_stats, paste(unlist(input_name)[1], "_final_stats.txt", sep=""), sep="\t", row.names=F, quote=F)
+	
+# you can write the results out into a flat tab delimited table
+write.table(sp_merged, paste(unlist(input_name)[1], "_rho_D_results.txt", sep=""), sep="\t", row.names=F, quote=F)
 
-## evaluate histogram
-## subset for strong cooccurring items
-strong_results<-subset(final_results, rho >= args[3])
-
-#pdf(paste(unlist(input_name)[1], "_rho_", args[3], "_histo.pdf", sep=""))
-#h<-hist(strong_results$rho)
-#h$density<-h$counts/sum(h$counts)*100
-#print(plot(h, freq=FALSE, ylab='Percentage'))
-#dev.off()
-
-temp.graph<-(graph.edgelist(as.matrix(strong_results[,c(1,2)]),directed=FALSE))
-E(temp.graph)$weight<-strong_results$rho
-temp.graph<-simplify(temp.graph)
-gnet<-asNetwork(temp.graph)
-df<-asDF(gnet)
-vs<-df$vertexes
-vs_phyla<-vs
-vs_phyla<-arrange(vs_phyla,intergraph_id)
-
-
-## index the desired coloring group, in this case "vs_phyla$vertex.names"
-	group<-data.frame(unique(vs_phyla$vertex.names))
-	group$index<-seq(1, length(group[, 1]))
-	colnames(group)[1]<-"vertex.names"
-	vs_phyla_temp<-merge(vs_phyla, group, "vertex.names")
-## change gnet vertex.name to color index
-	network.vertex.names(gnet)<-vs_phyla_temp$index
-## add color index to legend labeling
-	vs_phyla_temp$index_group<-paste(vs_phyla_temp$index, vs_phyla_temp$vertex.names, sep="_")	
-	colorCount = length(unique(vs_phyla_temp[, "index_group"]))
-	getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
-	colors = getPalette(colorCount)
-	names(colors)<-unique(vs_phyla_temp[,"index_group"])
-	gnet %v% "index_group" <- lapply(vs_phyla_temp[, "index_group"], as.character)
-#	set.vertex.attribute(gnet, "x", lapply(vs_phyla_temp[, x], as.character))
-        pdf(paste(args[1], "_rho_", args[3], "_measurements", "_network.pdf", sep=""), height=10, width=12)
-
-        p<-ggnet2(gnet, label=T, size=8, color="index_group", palette=colors)
-	print(p)
-        dev.off()
