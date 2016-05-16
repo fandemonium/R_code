@@ -35,7 +35,7 @@ for (i in unique(data.frame(sample_data(physeq))$id)){
 	dataset<-merge(si, totu, by.x="SAMPLES", by.y="row.names")
 	print(dim(dataset))
 	
-	temp<-dataset[,-c(1:20, 107:116)]
+	temp<-dataset[,-c(1:21, 108:120, 122)]
 	# making an object that has all the results in it (both rho and P values)
 	results_sp<-rcorr(as.matrix(temp),type="spearman")
 	results_hd<-hoeffd(as.matrix(temp))
@@ -83,7 +83,7 @@ for (i in unique(data.frame(sample_data(physeq))$id)){
 }
 	
 # you can write the results out into a flat tab delimited table
-write.table(combined_barn_cc, paste(unlist(input_name)[1], "_combined_barn_RelaAbun_cc_results_otu.txt", sep=""), sep="\t", row.names=F, quote=F)
+write.table(combined_barn_cc, paste(unlist(input_name)[1], "_combined_barn_RawAbun_cc_results_otu.txt", sep=""), sep="\t", row.names=F, quote=F)
 
 ### now we can calculate stats for the network
 ##final_stats<-data.frame()

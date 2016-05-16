@@ -47,7 +47,7 @@ for (i in unique(strong_results$category)){
 
 	## in order to have synchronized color among figures, a set of color has to be generated for everything in group1 first 
 	## group2 is essentially the same as group1, so one set of colors is enough here
-	for (x in colnames(phyla[, c(1, 8)])){
+	for (x in colnames(phyla[, c(3, 8)])){
 		colorCount = length(unique(phyla[, x]))
 		getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
 		colors = getPalette(colorCount)
