@@ -23,17 +23,18 @@ input_name<-strsplit(as.character(full_name), ".", fixed=T)
 #final_results<-read.delim(paste(args[1], "_final_results.txt", sep=""), sep="\t", header=T)
 final_results<-read.delim(args[1], sep="\t", header=T)
 
+#phyla<-read.delim("meta_w_genus_information.txt", sep="\t", header=T)
+phyla<-read.delim(args[2], sep="\t", header=T)
+phyla<-phyla[phyla$otu %in% unique(final_results$Var1), ]
+
 strong_results<-subset(final_results, D >= "0.65")
 #barn_foaming.rate<-read.delim("barn_foaming_rate.txt", sep="\t", header=T)
-barn_foaming.rate<-read.delim(args[2], sep="\t", header=T)
-strong_results<-merge(strong_results, barn_foaming.rate[, c("id", "category")], "id")
+#barn_foaming.rate<-read.delim(args[3], sep="\t", header=T)
+#strong_results<-merge(strong_results, barn_foaming.rate[, c("id", "category")], "id")
 strong_results$Var1<-paste(strong_results$Var1, strong_results$category, sep="::")
 strong_results$Var2<-paste(strong_results$Var2, strong_results$category, sep="::")
 strong_results<-data.frame(strong_results[, c("Var1", "Var2", "id")], strong_results[, 4:length(strong_results[1,])])
 
-
-#phyla<-read.delim("meta_w_genus_information.txt", sep="\t", header=T)
-phyla<-read.delim(args[3], sep="\t", header=T)
 
 for (i in unique(strong_results$category)){
         temp<-subset(strong_results, category==i)
@@ -47,7 +48,7 @@ for (i in unique(strong_results$category)){
 
 	## in order to have synchronized color among figures, a set of color has to be generated for everything in group1 first 
 	## group2 is essentially the same as group1, so one set of colors is enough here
-	for (x in colnames(phyla[, c(3, 8)])){
+	for (x in colnames(phyla[, c(8, 9)])){
 		colorCount = length(unique(phyla[, x]))
 		getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
 		colors = getPalette(colorCount)
