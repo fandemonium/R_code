@@ -1,5 +1,5 @@
 ###############################################
-### for cc gnet on subsetted final results: ###
+### for cc gnet on categorically common final results: ###
 ### eg: for i in *_results_*.txt; do Rscript ~/Documents/repos/code/R/gnet_cc_subset.R $i 0.75 ../meta_w_genus_information.txt; done ###
 ###############################################
 library(Hmisc)
@@ -34,23 +34,29 @@ phyla<-phyla[phyla$otu %in% unique(strong_results$Var1), ]
 #barn_foaming.rate<-read.delim("barn_foaming_rate.txt", sep="\t", header=T)
 #barn_foaming.rate<-read.delim(args[3], sep="\t", header=T)
 #strong_results<-merge(strong_results, barn_foaming.rate[, c("id", "category")], "id")
-strong_results$Var1<-paste(strong_results$Var1, strong_results$category, sep="::")
-strong_results$Var2<-paste(strong_results$Var2, strong_results$category, sep="::")
+#strong_results$Var1<-paste(strong_results$Var1, strong_results$category, sep="::")
+#strong_results$Var2<-paste(strong_results$Var2, strong_results$category, sep="::")
 strong_results<-data.frame(strong_results[, c("Var1", "Var2", "id")], strong_results[, 4:length(strong_results[1,])])
 
+temp<-strong_results
+temp.graph<-(graph.edgelist(as.matrix(temp[,c(1,2)]),directed=FALSE))
+E(temp.graph)$weight<-temp$rho
+temp.graph<-simplify(temp.graph, edge.attr.comb="sum")
+gnet<-asNetwork(temp.graph)
+df<-asDF(gnet)
+vs<-df$vertexes
+
+eg<-df$edges
+eg<-merge(eg, vs[, c(1, 3)], by.x="V1", by.y="intergraph_id")
+eg<-merge(eg, vs[, c(1, 3)], by.x="V2", by.y="intergraph_id")
+colnames(eg)[5:6]<-c("Var1", "Var2")
 
 for (i in unique(strong_results$category)){
-        temp<-subset(strong_results, category==i)
-	temp.graph<-(graph.edgelist(as.matrix(temp[,c(1,2)]),directed=FALSE))
-        E(temp.graph)$weight<-temp$rho
-        temp.graph<-simplify(temp.graph)
-        gnet<-asNetwork(temp.graph)
-        df<-asDF(gnet)
-        vs<-df$vertexes
-	vs$vertex.names<-data.frame(do.call('rbind', strsplit(as.character(vs$vertex.names), "::", fixed=T)))[, 1]
-
-	## in order to have synchronized color among figures, a set of color has to be generated for everything in group1 first 
-	## group2 is essentially the same as group1, so one set of colors is enough here
+	test<-subset(strong_results, category==i)
+	test<-test[!duplicated(test[, c(1:2)]), ]
+	test<-merge(eg, test[, c(1:2, 10)], c("Var1", "Var2"), all.x=T)
+## in order to have synchronized color among figures, a set of color has to be generated for everything in group1 first 
+## group2 is essentially the same as group1, so one set of colors is enough here
 	for (x in colnames(phyla[, 8:9])){
 		colorCount = length(unique(phyla[, x]))
 		getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
@@ -64,22 +70,24 @@ for (i in unique(strong_results$category)){
 		phyla_temp$index_group<-reorder(phyla_temp$index_group, as.numeric(phyla_temp$index))
 		names(colors)<-unique(phyla_temp$index_group)
 	
-	        vs_phyla<-merge(vs, phyla_temp, by.x="vertex.names",by.y="otu")
-	        vs_phyla<-arrange(vs_phyla,intergraph_id)
+		vs_phyla<-merge(vs, phyla_temp, by.x="vertex.names",by.y="otu")
+		vs_phyla<-arrange(vs_phyla,intergraph_id)
 		vs_phyla<-subset(vs_phyla, !grepl("Archaea|Root", domain))
 		vs_phyla$domain<-factor(vs_phyla$domain, levels=c("Bacteria", "measurements", "factors"))
-
+	
 		## change gnet vertex.name to color index
 		network.vertex.names(gnet)<-vs_phyla$index
 		gnet %v% "index_group" <- lapply(vs_phyla[, "index_group"], as.factor)
 		gnet %v% "type" <- lapply(vs_phyla[, "domain"], as.character)
-#		set.vertex.attribute(gnet, "x", lapply(vs_phyla[, x], as.character))
+		gnet %e% "category"<-lapply(test[, "category"], as.character)
+	#	set.vertex.attribute(gnet, "x", lapply(vs_phyla[, x], as.character))
 		set.edge.attribute(gnet, "lty", ifelse(gnet %e% "weight" > 0, 1, 2))
-
-                pdf(paste(unlist(input_name)[1], "_D_0.65", "_foaming_category_", i,"_",x, "_network.pdf", sep=""), height=10, width=18)
-                p<-ggnet2(gnet, label=T, size=8, color="index_group", shape="type", shape.palette=c("Bacteria" = 16, "measurements" = 17, "factors"=15), edge.lty="lty", edge.color="black") + scale_color_manual(values=colors, guide=guide_legend(override.aes=list(size=6.5)))
+		set.edge.attribute(gnet, "color", ifelse(!is.na(gnet %e% "category"), "red", "grey75"))
+		set.edge.attribute(gnet, "size", ifelse(gnet %e% "weight" >= 0, gnet %e% "weight", -(gnet %e% "weight")))
+	
+	        pdf(paste(unlist(input_name)[1], "_D_0.65", "_foaming_category_", i, "_",x, "_network.pdf", sep=""), height=10, width=18)
+	        p<-ggnet2(gnet, label=T, size=8, color="index_group", shape="type", shape.palette=c("Bacteria" = 16, "measurements" = 17, "factors"=15), edge.lty="lty", edge.color="color", edge.size="size", mode="circle") + scale_color_manual(values=colors, guide=guide_legend(override.aes=list(size=6.5)))
 		print(p)
-                dev.off()
-        }
+	        dev.off()
+	}
 }
-
