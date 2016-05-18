@@ -45,8 +45,10 @@ sp_melt<-na.omit(melt(sp_ps))
 ds_melt<-na.omit(melt(ds_ps))
 
 #creating a qvalue (adjusted pvalue) based on FDR
-sp_melt$spearman_qval<-fdrtool(sp_melt$value, statistic="pvalue", plot=F,verbose=F)$qval
-ds_melt$hoeffding_qval<-fdrtool(ds_melt$value, statistic="pvalue", plot=F,verbose=F)$qval
+sp_melt$spearman_qval<-p.adjust(sp_melt$value, "fdr")
+ds_melt$hoeffding_qval<-p.adjust(ds_melt$value, "fdr")
+#sp_melt$spearman_qval<-fdrtool(sp_melt$value, statistic="pvalue", plot=F,verbose=F)$qval
+#ds_melt$hoeffding_qval<-fdrtool(ds_melt$value, statistic="pvalue", plot=F,verbose=F)$qval
 #making column names more relevant
 names(sp_melt)[3]<-"spearman_pval"
 names(ds_melt)[3]<-"hoeffding_pval"
