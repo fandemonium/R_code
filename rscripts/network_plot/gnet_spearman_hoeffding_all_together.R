@@ -26,7 +26,8 @@ final_results<-read.delim(args[1], sep="\t", header=T)
 #phyla<-read.delim("meta_w_genus_information.txt", sep="\t", header=T)
 phyla<-read.delim(args[2], sep="\t", header=T)
 
-strong_results<-subset(final_results, D >= "0.65")
+#strong_results<-subset(final_results, D >= "0.65")
+strong_results<-subset(final_results, rho >= "0.60")
 
 #get rid of otu's that are not in the strong_results
 phyla<-phyla[phyla$otu %in% unique(strong_results$Var1), ]
@@ -36,7 +37,7 @@ phyla<-phyla[phyla$otu %in% unique(strong_results$Var1), ]
 #strong_results<-merge(strong_results, barn_foaming.rate[, c("id", "category")], "id")
 #strong_results$Var1<-paste(strong_results$Var1, strong_results$category, sep="::")
 #strong_results$Var2<-paste(strong_results$Var2, strong_results$category, sep="::")
-strong_results<-data.frame(strong_results[, c("Var1", "Var2", "id")], strong_results[, 4:length(strong_results[1,])])
+#strong_results<-data.frame(strong_results[, c("Var1", "Var2", "id")], strong_results[, 4:length(strong_results[1,])])
 
 temp<-strong_results
 temp.graph<-(graph.edgelist(as.matrix(temp[,c(1,2)]),directed=FALSE))
@@ -51,10 +52,10 @@ eg<-merge(eg, vs[, c(1, 3)], by.x="V1", by.y="intergraph_id")
 eg<-merge(eg, vs[, c(1, 3)], by.x="V2", by.y="intergraph_id")
 colnames(eg)[5:6]<-c("Var1", "Var2")
 
-for (i in unique(strong_results$category)){
-	test<-subset(strong_results, category==i)
+for (i in unique(strong_results$foam.type)){
+	test<-subset(strong_results, foam.type==i)
 	test<-test[!duplicated(test[, c(1:2)]), ]
-	test<-merge(eg, test[, c(1:2, 10)], c("Var1", "Var2"), all.x=T)
+	test<-merge(eg, test[, c(1:2, 9)], c("Var1", "Var2"), all.x=T)
 ## in order to have synchronized color among figures, a set of color has to be generated for everything in group1 first 
 ## group2 is essentially the same as group1, so one set of colors is enough here
 	for (x in colnames(phyla[, 8:9])){
@@ -79,14 +80,14 @@ for (i in unique(strong_results$category)){
 		network.vertex.names(gnet)<-vs_phyla$index
 		gnet %v% "index_group" <- lapply(vs_phyla[, "index_group"], as.factor)
 		gnet %v% "type" <- lapply(vs_phyla[, "domain"], as.character)
-		gnet %e% "category"<-lapply(test[, "category"], as.character)
+		gnet %e% "foam.type"<-lapply(test[, "foam.type"], as.character)
 	#	set.vertex.attribute(gnet, "x", lapply(vs_phyla[, x], as.character))
 		set.edge.attribute(gnet, "lty", ifelse(gnet %e% "weight" > 0, 1, 2))
-		set.edge.attribute(gnet, "color", ifelse(!is.na(gnet %e% "category"), "red", "grey75"))
+		set.edge.attribute(gnet, "color", ifelse(!is.na(gnet %e% "foam.type"), "red", "grey75"))
 		set.edge.attribute(gnet, "size", ifelse(gnet %e% "weight" >= 0, gnet %e% "weight", -(gnet %e% "weight")))
 	
-	        pdf(paste(unlist(input_name)[1], "_D_0.65", "_foaming_category_", i, "_",x, "_network.pdf", sep=""), height=10, width=18)
-	        p<-ggnet2(gnet, label=T, size=8, color="index_group", shape="type", shape.palette=c("Bacteria" = 16, "measurements" = 17, "factors"=15), edge.lty="lty", edge.color="color", edge.size="size", mode="circle") + scale_color_manual(values=colors, guide=guide_legend(override.aes=list(size=6.5)))
+	        pdf(paste(unlist(input_name)[1], "_rho_0.6", "_foam_type_", i, "_",x, "_network.pdf", sep=""), height=15, width=20)
+	        p<-ggnet2(gnet, label=T, size=8, color="index_group", shape="type", shape.palette=c("Bacteria" = 16, "measurements" = 17, "factors"=15), edge.lty="lty", edge.color="color", edge.size="size", mode="fruchtermanreingold") + scale_color_manual(values=colors, guide=guide_legend(override.aes=list(size=6.5)))
 		print(p)
 	        dev.off()
 	}
