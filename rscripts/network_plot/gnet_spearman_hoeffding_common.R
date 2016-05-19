@@ -27,7 +27,7 @@ final_results<-read.delim(args[1], sep="\t", header=T)
 phyla<-read.delim(args[2], sep="\t", header=T)
 
 #strong_results<-subset(final_results, D >= "0.65")
-strong_results<-subset(final_results, abs(rho) >= "0.55")
+strong_results<-subset(final_results, abs(rho) >= "0.4")
 
 #get rid of otu's that are not in the strong_results
 phyla<-phyla[phyla$otu %in% unique(strong_results$Var1), ]
@@ -47,15 +47,15 @@ gnet<-asNetwork(temp.graph)
 df<-asDF(gnet)
 vs<-df$vertexes
 
-eg<-df$edges
-eg<-merge(eg, vs[, c(1, 3)], by.x="V1", by.y="intergraph_id")
-eg<-merge(eg, vs[, c(1, 3)], by.x="V2", by.y="intergraph_id")
-colnames(eg)[5:6]<-c("Var1", "Var2")
-
-for (i in unique(strong_results$foam.type)){
-	test<-subset(strong_results, foam.type==i)
-	test<-test[!duplicated(test[, c(1:2)]), ]
-	test<-merge(eg, test[, c(1:2, 9)], c("Var1", "Var2"), all.x=T)
+#eg<-df$edges
+#eg<-merge(eg, vs[, c(1, 3)], by.x="V1", by.y="intergraph_id")
+#eg<-merge(eg, vs[, c(1, 3)], by.x="V2", by.y="intergraph_id")
+#colnames(eg)[5:6]<-c("Var1", "Var2")
+#
+#for (i in unique(strong_results$foam.type)){
+#	test<-subset(strong_results, foam.type==i)
+#	test<-test[!duplicated(test[, c(1:2)]), ]
+#	test<-merge(eg, test[, c(1:2, 9)], c("Var1", "Var2"), all.x=T)
 ## in order to have synchronized color among figures, a set of color has to be generated for everything in group1 first 
 ## group2 is essentially the same as group1, so one set of colors is enough here
 	for (x in colnames(phyla[, 8:9])){
@@ -80,15 +80,15 @@ for (i in unique(strong_results$foam.type)){
 		network.vertex.names(gnet)<-vs_phyla$index
 		gnet %v% "index_group" <- lapply(vs_phyla[, "index_group"], as.factor)
 		gnet %v% "type" <- lapply(vs_phyla[, "domain"], as.character)
-		gnet %e% "foam.type"<-lapply(test[, "foam.type"], as.character)
+	#	gnet %e% "foam.type"<-lapply(test[, "foam.type"], as.character)
 	#	set.vertex.attribute(gnet, "x", lapply(vs_phyla[, x], as.character))
 		set.edge.attribute(gnet, "lty", ifelse(gnet %e% "weight" > 0, 1, 2))
-		set.edge.attribute(gnet, "color", ifelse(!is.na(gnet %e% "foam.type"), "red", "grey75"))
+	#	set.edge.attribute(gnet, "color", ifelse(!is.na(gnet %e% "foam.type"), "red", "grey75"))
 		set.edge.attribute(gnet, "size", ifelse(gnet %e% "weight" >= 0, gnet %e% "weight", -(gnet %e% "weight")))
 	
-	        pdf(paste(unlist(input_name)[1], "_abs.rho_0.55", "_foam_type_", i, "_",x, "_network.pdf", sep=""), height=15, width=20)
-	        p<-ggnet2(gnet, label=T, size=8, color="index_group", shape="type", shape.palette=c("Bacteria" = 16, "measurements" = 17, "diet"=15, "factors"=18), edge.lty="lty", edge.color="color", edge.size="size", mode="kamadakawai") + scale_color_manual(values=colors, guide=guide_legend(override.aes=list(size=6.5)))
+	        pdf(paste(unlist(input_name)[1], "_abs.rho_0.55", x, "_network.pdf", sep=""), height=15, width=20)
+	        p<-ggnet2(gnet, label=T, size=8, color="index_group", shape="type", shape.palette=c("Bacteria" = 16, "measurements" = 17, "diet"=15, "factors"=18), edge.lty="lty", edge.color="black", edge.size="size", mode="kamadakawai") + scale_color_manual(values=colors, guide=guide_legend(override.aes=list(size=6.5)))
 		print(p)
 	        dev.off()
 	}
-}
+#}

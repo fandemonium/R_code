@@ -18,7 +18,7 @@ input_results<-read.delim(args[1], sep="\t", header=T)
 ##barn_foaming.rate<-read.delim("barn_foaming_rate.txt", sep="\t", header=T)
 #barn_foaming.rate<-read.delim(args[2], sep="\t", header=T)
 #final_results<-subset(input_results, D >= "0.65")
-final_results<-subset(input_results, rho >= "0.60")
+final_results<-subset(input_results, rho >= "0.55")
 #final_results<-data.frame(final_results[, c("Var1", "Var2", "id")], final_results[, 4:length(final_results[1,])])
 
 # now we can calculate stats for the network
