@@ -16,18 +16,19 @@ input_name<-strsplit(as.character(full_name), ".", fixed=T)
 input_results<-read.delim(args[1], sep="\t", header=T)
 
 ##barn_foaming.rate<-read.delim("barn_foaming_rate.txt", sep="\t", header=T)
-barn_foaming.rate<-read.delim(args[2], sep="\t", header=T)
-final_results<-subset(input_results, D >= "0.65")
-final_results<-data.frame(final_results[, c("Var1", "Var2", "id")], final_results[, 4:length(final_results[1,])])
+#barn_foaming.rate<-read.delim(args[2], sep="\t", header=T)
+#final_results<-subset(input_results, D >= "0.65")
+final_results<-subset(input_results, rho >= "0.60")
+#final_results<-data.frame(final_results[, c("Var1", "Var2", "id")], final_results[, 4:length(final_results[1,])])
 
 # now we can calculate stats for the network
 network_clustering<-data.frame()
-for(i in unique(final_results$id)){
-        temp<-subset(final_results, id==i)
+for(i in unique(final_results$foam.type)){
+        temp<-subset(final_results, foam.type==i)
         temp.graph<-(graph.edgelist(as.matrix(temp[,c(1,2)]),directed=FALSE))
         E(temp.graph)$weight<-abs(temp$rho)
         temp.graph<-simplify(temp.graph)
-        id <- i
+        foam.type <- i
 	
 	N_nodes<-vcount(temp.graph)
 	N_edges<-ecount(temp.graph)
@@ -56,12 +57,13 @@ for(i in unique(final_results$id)){
         rand_ci.975<-qt(.975, df=length(rand)-1)*(sd(rand)/sqrt(length(rand)))
                 
         cluster_ratio<-clustering_coeff/rand_avg
-        test<-cbind(id, N_nodes, N_edges, N_clusters, Max_csize, Max_c_edges, g.density, g.pathlength.avg, betcent, degcent, g.mod, efsize_avg, clustering_coeff, rand_avg, rand_ci.975, cluster_ratio)
+        test<-cbind(foam.type, N_nodes, N_edges, N_clusters, Max_csize, Max_c_edges, g.density, g.pathlength.avg, betcent, degcent, g.mod, efsize_avg, clustering_coeff, rand_avg, rand_ci.975, cluster_ratio)
         network_clustering<-rbind(network_clustering, test)
         print(paste("finished ", i ,sep=": "))
 }
 
-final_stat<-merge(barn_foaming.rate, network_clustering, "id")
+#final_stat<-merge(barn_foaming.rate, network_clustering, "id")
+final_stat<-network_clustering
 
 # you can write the results out into a flat tab delimited table
 write.table(final_stat, paste(unlist(input_name)[1], "_final_stats.txt", sep=""), sep="\t", row.names=F, quote=F) 
