@@ -13,6 +13,7 @@ library(RColorBrewer)
 library(ggplot2)
 library(network)
 library(sna)
+library(arcdiagram)
 
 args<-commandArgs(TRUE)
 input_path<-unlist(strsplit(as.character(args[1]), "/", fixed=T))
@@ -32,63 +33,74 @@ strong_results<-subset(final_results, abs(rho) >= "0.55")
 #get rid of otu's that are not in the strong_results
 phyla<-phyla[phyla$otu %in% unique(strong_results$Var1), ]
 
-#barn_foaming.rate<-read.delim("barn_foaming_rate.txt", sep="\t", header=T)
-#barn_foaming.rate<-read.delim(args[3], sep="\t", header=T)
-#strong_results<-merge(strong_results, barn_foaming.rate[, c("id", "category")], "id")
-#strong_results$Var1<-paste(strong_results$Var1, strong_results$category, sep="::")
-#strong_results$Var2<-paste(strong_results$Var2, strong_results$category, sep="::")
-#strong_results<-data.frame(strong_results[, c("Var1", "Var2", "id")], strong_results[, 4:length(strong_results[1,])])
-
 temp<-strong_results
-temp.graph<-(graph.edgelist(as.matrix(temp[,c(1,2)]),directed=FALSE))
-E(temp.graph)$weight<-temp$rho
-temp.graph<-simplify(temp.graph, edge.attr.comb="mean")
-gnet<-asNetwork(temp.graph)
-df<-asDF(gnet)
-vs<-df$vertexes
+net<-(graph.edgelist(as.matrix(temp[,c(1,2)]),directed=FALSE))
+E(net)$rho<-temp$rho
+net<-simplify(net, edge.attr.comb="mean")
+## define: node size by degree
+net_degree <- igraph::degree(net)
 
-eg<-df$edges
-eg<-merge(eg, vs[, c(1, 3)], by.x="V1", by.y="intergraph_id")
-eg<-merge(eg, vs[, c(1, 3)], by.x="V2", by.y="intergraph_id")
-colnames(eg)[5:6]<-c("Var1", "Var2")
+### generate a gradient of color for the net_degree
+#degree_df<-data.frame(net_degree)
+#colnames(degree_df)[1]<-"degree"
+#degree_df$index<-seq(1, length(degree_df[, 1]))
+#degree_df$nodes<-row.names(degree_df)
+#uniq_degree<-data.frame(sort(unique(net_degree)))
+#colnames(uniq_degree)[1]<-"degree"
+#colfunc <- colorRampPalette(c("grey", "black"))
+#uniq_degree$cols<-colfunc(length(uniq_degree$degree))
+#degree_df<-merge(degree_df, uniq_degree, "degree")
+### define groups to be plotted together
+#gclus <- clusters(net)
+#gclus.df<-data.frame(gclus$membership)
+#degree_df<-merge(degree_df, gclus.df, by.x="nodes", by.y="row.names")
+#degree_df<-degree_df[order(degree_df$gclus.membership, degree_df$index),]
+##print(degree_df)
+
+## define: positive interactions solid line; negative interactions dash line
+E(net)$lty <- ifelse(E(net)$rho > 0, 1, 2)
+
+df<-asDF(net)
+vs<-df$vertexes
+edg<-df$edges
+edg$index<-row.names(edg)
+## define: positive interactions draw arches above
+pos_l <- as.numeric(edg$index[edg$rho > 0])
+
+vs_phyla <- merge(vs, phyla, by.x="name", by.y="otu")
+vs_phyla<-arrange(vs_phyla,intergraph_id)
+vs_phyla<-subset(vs_phyla, !grepl("Archaea|Root", domain))
+vs_phyla$domain<-factor(vs_phyla$domain, levels=c("Bacteria", "measurements", "diet", "factors"))
+
+## define: node shapes
+vs_phyla$shape <- vs_phyla$domain
+vs_phyla$shape<-gsub("\\bBacteria\\b", 16, vs_phyla$shape)
+vs_phyla$shape<-gsub("\\bmeasurements\\b", 17, vs_phyla$shape)
+vs_phyla$shape<-gsub("\\bdiet\\b", 15, vs_phyla$shape)
+vs_phyla$shape<-gsub("\\bfactors\\b", 18, vs_phyla$shape)
+
+V(net)$shape <- vs_phyla$shape
+
+#edg<-merge(edg, vs[, c(1, 2)], by.x="V1", by.y="intergraph_id")
+#edg<-merge(edg, vs[, c(1, 2)], by.x="V2", by.y="intergraph_id")
+#colnames(edg)[6:7]<-c("Var1", "Var2")
 
 for (i in unique(strong_results$foam.type)){
-	test<-subset(strong_results, foam.type==i)
-	test<-test[!duplicated(test[, c(1:2)]), ]
-	test<-merge(eg, test[, c(1:2, 9)], c("Var1", "Var2"), all.x=T)
-## in order to have synchronized color among figures, a set of color has to be generated for everything in group1 first 
-## group2 is essentially the same as group1, so one set of colors is enough here
-	for (x in colnames(phyla[, 8:9])){
-		colorCount = length(unique(phyla[, x]))
-		getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
-		colors = getPalette(colorCount)
-		## index the desired coloring group, in this case "vs_phyla$group1"
-		to_index<-data.frame(unique(phyla[, x]))
-		to_index$index<-seq(1, length(to_index[, 1]))
-		colnames(to_index)[1]<-x
-		phyla_temp<-merge(phyla, to_index, x)
-		phyla_temp$index_group<-paste(phyla_temp$index, phyla_temp[, x], sep="_")
-		phyla_temp$index_group<-reorder(phyla_temp$index_group, as.numeric(phyla_temp$index))
-		names(colors)<-unique(phyla_temp$index_group)
-	
-		vs_phyla<-merge(vs, phyla_temp, by.x="vertex.names",by.y="otu")
-		vs_phyla<-arrange(vs_phyla,intergraph_id)
-		vs_phyla<-subset(vs_phyla, !grepl("Archaea|Root", domain))
-		vs_phyla$domain<-factor(vs_phyla$domain, levels=c("Bacteria", "measurements", "diet", "factors"))
-	
-		## change gnet vertex.name to color index
-		network.vertex.names(gnet)<-vs_phyla$index
-		gnet %v% "index_group" <- lapply(vs_phyla[, "index_group"], as.factor)
-		gnet %v% "type" <- lapply(vs_phyla[, "domain"], as.character)
-		gnet %e% "foam.type"<-lapply(test[, "foam.type"], as.character)
-	#	set.vertex.attribute(gnet, "x", lapply(vs_phyla[, x], as.character))
-		set.edge.attribute(gnet, "lty", ifelse(gnet %e% "weight" > 0, 1, 2))
-		set.edge.attribute(gnet, "color", ifelse(!is.na(gnet %e% "foam.type"), "red", "grey75"))
-		set.edge.attribute(gnet, "size", ifelse(gnet %e% "weight" >= 0, gnet %e% "weight", -(gnet %e% "weight")))
-	
-	        pdf(paste(unlist(input_name)[1], "_abs.rho_0.55", "_foam_type_", i, "_",x, "_network.pdf", sep=""), height=15, width=20)
-	        p<-ggnet2(gnet, label=T, size=8, color="index_group", shape="type", shape.palette=c("Bacteria" = 16, "measurements" = 17, "diet"=15, "factors"=18), edge.lty="lty", edge.color="color", edge.size="size", mode="kamadakawai") + scale_color_manual(values=colors, guide=guide_legend(override.aes=list(size=6.5)))
-		print(p)
-	        dev.off()
-	}
+#	test<-subset(strong_results, foam.type==i)
+#	test<-test[!duplicated(test[, c(1:2)]), ]
+#	test<-merge(edg, test[, c(1:2, 9)], c("Var1", "Var2"), all.x=T)
+#	test<-arrange(test, test$index)
+### in order to have synchronized color among figures, a set of color has to be generated for everything in group1 first 
+### group2 is essentially the same as group1, so one set of colors is enough here
+#	E(net)$foam.type <- as.character(test[, "foam.type"])
+#	E(net)$colors <- ifelse(!is.na(E(net)$foam.type), "black", "grey75")
+		
+	## get nodes and edges for basic arcplot frame
+	net_edges = get.edgelist(net)
+
+	pdf(paste(unlist(input_name)[1], "_abs.rho_0.55_", i, "_network.pdf", sep=""), height=7, width=15)
+	par(mar=c(15,0,0,0)) 
+	p<-arcplot(net_edges, labels=as.character(vs_phyla$group3), col.labels=E(net)$colors, cex.labels=0.9, lty.arcs=E(net)$lty, lwd.arcs= E(net)$rho, col.arcs=E(net)$colors, above = pos_l, col.nodes=degree_df$cols, bg.nodes="black", pch.nodes=as.numeric(V(net)$shape), cex.nodes=2)
+	print(p)
+	dev.off()
 }

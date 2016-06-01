@@ -36,26 +36,10 @@ phyla<-phyla[phyla$otu %in% unique(strong_results$Var1), ]
 temp<-strong_results
 net<-(graph.edgelist(as.matrix(temp[,c(1,2)]),directed=FALSE))
 E(net)$rho<-temp$rho
+E(net)$weight<-temp$rho
+#net<-simplify(net, edge.attr.comb="mean")
 ## define: node size by degree
 net_degree <- igraph::degree(net)
-
-## generate a gradient of color for the net_degree
-degree_df<-data.frame(net_degree)
-colnames(degree_df)[1]<-"degree"
-degree_df$index<-seq(1, length(degree_df[, 1]))
-degree_df$nodes<-row.names(degree_df)
-uniq_degree<-data.frame(sort(unique(net_degree)))
-colnames(uniq_degree)[1]<-"degree"
-colfunc <- colorRampPalette(c("grey", "black"))
-uniq_degree$cols<-colfunc(length(uniq_degree$degree))
-degree_df<-merge(degree_df, uniq_degree, "degree")
-degree_df<-arrange(degree_df, degree_df$index)
-### define groups to be plotted together
-#gclus <- clusters(net)
-#gclus.df<-data.frame(gclus$membership)
-#degree_df<-merge(degree_df, gclus.df, by.x="nodes", by.y="row.names")
-#degree_df<-degree_df[order(degree_df$gclus.membership, degree_df$index),]
-##print(degree_df)
 
 ## define: positive interactions solid line; negative interactions dash line
 E(net)$lty <- ifelse(E(net)$rho > 0, 1, 2)
@@ -87,8 +71,10 @@ V(net)$shape <- vs_phyla$shape
 ## get nodes and edges for basic arcplot frame
 net_edges = get.edgelist(net)
 
-pdf(paste(unlist(input_name)[1], "_abs.rho_0.55_common_network.pdf", sep=""), height=7, width=15)
-par(mar=c(15,0,0,0)) 
-p<-arcplot(net_edges, labels=as.character(vs_phyla$group3), col.labels="black", cex.labels=log(net_degree+1, 6), lty.arcs=E(net)$lty, lwd.arcs= E(net)$rho, col.arcs="black", above = pos_l, col.nodes=degree_df$cols, bg.nodes="black", pch.nodes=as.numeric(V(net)$shape), cex.nodes=2)
+gclus = clusters(net)
+
+pdf(paste(unlist(input_name)[1], "_abs.rho_0.55_notcommon_network.pdf", sep=""), height=10, width=10)
+par(mar=c(22,0,0,0)) 
+p<-arcplot(net_edges, labels=as.character(vs_phyla$group3), col.labels="black", cex.labels=log(net_degree + 1, 5), lty.arcs=E(net)$lty, lwd.arcs= E(net)$rho, col.arcs="black", above = pos_l, col.nodes="black",cex.nodes=log(net_degree + 1, 5), bg.nodes="black", pch.nodes=as.numeric(V(net)$shape), ordering=order(gclus$membership))
 print(p)
 dev.off()
