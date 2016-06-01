@@ -75,6 +75,6 @@ gclus = clusters(net)
 
 pdf(paste(unlist(input_name)[1], "_abs.rho_0.55_notcommon_network.pdf", sep=""), height=10, width=10)
 par(mar=c(22,0,0,0)) 
-p<-arcplot(net_edges, labels=as.character(vs_phyla$group3), col.labels="black", cex.labels=log(net_degree + 1, 5), lty.arcs=E(net)$lty, lwd.arcs= E(net)$rho, col.arcs="black", above = pos_l, col.nodes="black",cex.nodes=log(net_degree + 1, 5), bg.nodes="black", pch.nodes=as.numeric(V(net)$shape), ordering=order(gclus$membership))
+p<-arcplot(net_edges, labels=as.character(vs_phyla$group3), col.labels="black", cex.labels=log(net_degree + 1, 5), lty.arcs=E(net)$lty, lwd.arcs= E(net)$rho, col.arcs="black", above = pos_l, col.nodes="black",cex.nodes=log(net_degree + 1, 3), bg.nodes="black", pch.nodes=as.numeric(V(net)$shape), ordering=order(gclus$membership))
 print(p)
 dev.off()
