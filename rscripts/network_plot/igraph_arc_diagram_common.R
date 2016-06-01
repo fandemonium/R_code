@@ -87,8 +87,8 @@ V(net)$shape <- vs_phyla$shape
 ## get nodes and edges for basic arcplot frame
 net_edges = get.edgelist(net)
 
-pdf(paste(unlist(input_name)[1], "_abs.rho_0.55_common_network.pdf", sep=""), height=7, width=15)
-par(mar=c(15,0,0,0)) 
+pdf(paste(unlist(input_name)[1], "_abs.rho_0.55_common_network.pdf", sep=""), height=9, width=15)
+par(mar=c(20,0,0,0)) 
 p<-arcplot(net_edges, labels=as.character(vs_phyla$group3), col.labels=degree_df$cols, cex.labels=1.5, lty.arcs=E(net)$lty, lwd.arcs= E(net)$rho, col.arcs="black", above = pos_l, col.nodes=degree_df$cols, bg.nodes="black", pch.nodes=as.numeric(V(net)$shape), cex.nodes=2)
 print(p)
 dev.off()
