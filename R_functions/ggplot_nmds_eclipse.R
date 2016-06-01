@@ -23,8 +23,12 @@ veganCovEllipse<-function (cov, center = c(0, 0), scale = 1, npoints = 100)
                     ,group=g))
   }
 
-X1<-ggplot(data = NMDS, aes(MDS1, MDS2)) + geom_point(aes(color = Treatment),size=3,alpha=0.75) +
-    geom_path(data=df_ell, aes(x=MDS1, y=MDS2,colour=group), size=2, linetype=5)+theme_bw()+theme(aspect.ratio=1)+scale_color_manual(values=COLORS)+theme(axis.text.x=element_text(size=20),axis.text.y=element_text(size=20),axis.title.x=element_text(size=20),axis.title.y=element_text(size=20))+theme(legend.title=element_text(size=15),legend.text=element_text(size=15))
+X1<-ggplot(data = NMDS, aes(MDS1, MDS2)) + geom_point(aes(color = Treatment),size=1.5,alpha=0.75) +
+    geom_path(data=df_ell, aes(x=MDS1, y=MDS2,colour=group), size=2, linetype=5)+
+    theme_classic()+ theme(axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid')) +
+    theme(aspect.ratio=1)+
+    scale_color_manual(values=COLORS) +
+    theme(axis.text.x=element_text(size=18),axis.text.y=element_text(size=18),axis.title.x=element_text(size=18),axis.title.y=element_text(size=18))+theme(legend.title=element_blank(), legend.text=element_text(size=18))
 X1    
 }
 

@@ -1,5 +1,5 @@
 ##plot NMDS using ggplot modified from RJW's code
-ggplot.NMDS.ellipse<-function(XX, df, COLORS){
+ggplot.NMDS.poly.ellipse<-function(XX, df, COLORS){
 	## df consists of a dataframe with 2 columns (hull factors and ellipse factors)
         library(ggplot2)
 MDS1<-data.frame(scores(XX))$NMDS1
@@ -37,8 +37,8 @@ veganCovEllipse<-function (cov, center = c(0, 0), scale = 1, npoints = 100)
 
 X1<-ggplot() + 
 #    geom_point(aes(color = Treatment),size=3,alpha=0.75) +
-    geom_polygon(data=hull.data, aes_string(x="MDS1", y="MDS2", fill=colnames(hull.data[, 3]), color = "grey75"), alpha=0.3) +
-    geom_path(data=df_ell, aes_string(x="MDS1", y="MDS2",colour=colnames(df_ell[, 4])), size=2, linetype=5)+theme_bw()+theme(aspect.ratio=1)+scale_color_manual(values=COLORS)+theme(axis.text.x=element_text(size=20),axis.text.y=element_text(size=20),axis.title.x=element_text(size=20),axis.title.y=element_text(size=20))+theme(legend.title=element_text(size=15),legend.text=element_text(size=15))
+    geom_polygon(data=hull.data, aes_string(x="MDS1", y="MDS2", fill=colnames(hull.data[, 3]), color = "grey"), alpha=0.3) +
+    geom_path(data=df_ell, aes_string(x="MDS1", y="MDS2",colour=colnames(df_ell[, 3])), size=2, linetype=5)+theme_bw()+theme(aspect.ratio=1)+scale_color_manual(values=COLORS)+theme(axis.text.x=element_text(size=20),axis.text.y=element_text(size=20),axis.title.x=element_text(size=20),axis.title.y=element_text(size=20))+theme(legend.title=element_text(size=15),legend.text=element_text(size=15))
 X1    
 }
 
