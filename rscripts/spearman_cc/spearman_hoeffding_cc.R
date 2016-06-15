@@ -60,22 +60,19 @@ for (i in unique(data.frame(sample_data(physeq))$id)){
 	names(sp_melt)[3]<-"spearman_pval"
 	names(ds_melt)[3]<-"hoeffding_pval"
 	
-	# if you are of the opinion that it is a good idea to subset your network based on adjusted P-values (qval in this case), you can then subset here
-	sp_sub<-subset(sp_melt, spearman_qval < 0.05)
-	ds_sub<-subset(ds_melt, hoeffding_qval < 0.05)
-	
 	# now melting the rhos, note the similarity between ps_melt and rhos_melt
-	rhos_melt<-na.omit(melt(rhos))
-	ds_melt<-na.omit(melt(ds))
+	rho.melt<-na.omit(melt(rhos))
+	d.melt<-na.omit(melt(ds))
 	
-	names(rhos_melt)[3]<-"rho"
-	names(ds_melt)[3]<-"D"
+	names(rho.melt)[3]<-"rho"
+	names(d.melt)[3]<-"D"
 	
-	#merging together 
-	sp_merged<-merge(sp_sub,rhos_melt,by=c("Var1","Var2"))
-	ds_merged<-merge(ds_sub, ds_melt,by=c("Var1","Var2"))
+	#merging together  then subset
+	sp_merged<-merge(sp_melt,rho.melt,by=c("Var1","Var2"))
+	ds_merged<-merge(ds_melt, d.melt,by=c("Var1","Var2"))
 	merged<-merge(sp_merged, ds_merged, by=c("Var1", "Var2"))
-	
+	merged<-subset(merged, spearman_qval < 0.05 | hoeffding_qval < 0.05)
+
 	merged$id<-i
 	combined_barn_cc<-rbind(combined_barn_cc, merged)
 	print(paste("finished ",i,sep=""))
