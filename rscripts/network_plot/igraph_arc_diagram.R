@@ -22,21 +22,17 @@ input_name<-strsplit(as.character(full_name), ".", fixed=T)
 
 #final_results<-read.delim("all_493sample_cc_input_final_results.txt", sep="\t", header=T)
 #final_results<-read.delim(paste(args[1], "_final_results.txt", sep=""), sep="\t", header=T)
-final_results<-read.delim(args[1], sep="\t", header=T)
+strong_results<-read.delim(args[1], sep="\t", header=T)
 
 #phyla<-read.delim("meta_w_genus_information.txt", sep="\t", header=T)
 phyla<-read.delim(args[2], sep="\t", header=T)
 
-#strong_results<-subset(final_results, D >= "0.65")
-strong_results<-subset(final_results, abs(rho) >= "0.55")
-
 #get rid of otu's that are not in the strong_results
-phyla<-phyla[phyla$otu %in% unique(strong_results$Var1), ]
+phyla<-phyla[phyla$otu %in% unique(strong_results$Var1) | phyla$otu %in% unique(strong_results$Var2), ]
 
 temp<-strong_results
 net<-(graph.edgelist(as.matrix(temp[,c(1,2)]),directed=FALSE))
-E(net)$rho<-temp$rho
-net<-simplify(net, edge.attr.comb="mean")
+E(net)$wt<-temp$wt
 ## define: node size by degree
 net_degree <- igraph::degree(net)
 
@@ -58,14 +54,14 @@ net_degree <- igraph::degree(net)
 ##print(degree_df)
 
 ## define: positive interactions solid line; negative interactions dash line
-E(net)$lty <- ifelse(E(net)$rho > 0, 1, 2)
+E(net)$lty <- ifelse(E(net)$wt > 0, 1, 2)
 
 df<-asDF(net)
 vs<-df$vertexes
 edg<-df$edges
 edg$index<-row.names(edg)
 ## define: positive interactions draw arches above
-pos_l <- as.numeric(edg$index[edg$rho > 0])
+pos_l <- as.numeric(edg$index[edg$wt > 0])
 
 vs_phyla <- merge(vs, phyla, by.x="name", by.y="otu")
 vs_phyla<-arrange(vs_phyla,intergraph_id)
@@ -98,9 +94,9 @@ for (i in unique(strong_results$foam.type)){
 	## get nodes and edges for basic arcplot frame
 	net_edges = get.edgelist(net)
 
-	pdf(paste(unlist(input_name)[1], "_abs.rho_0.55_", i, "_network.pdf", sep=""), height=7, width=15)
+	pdf(paste(unlist(input_name)[1], "_", i, "_network.pdf", sep=""), height=7, width=15)
 	par(mar=c(15,0,0,0)) 
-	p<-arcplot(net_edges, labels=as.character(vs_phyla$group3), col.labels=E(net)$colors, cex.labels=0.9, lty.arcs=E(net)$lty, lwd.arcs= E(net)$rho, col.arcs=E(net)$colors, above = pos_l, col.nodes=degree_df$cols, bg.nodes="black", pch.nodes=as.numeric(V(net)$shape), cex.nodes=2)
+	p<-arcplot(net_edges, labels=as.character(vs_phyla$group3), col.labels=E(net)$colors, cex.labels=0.9, lty.arcs=E(net)$lty, lwd.arcs= E(net)$wt, col.arcs=E(net)$colors, above = pos_l, col.nodes="black", bg.nodes="black", pch.nodes=as.numeric(V(net)$shape), cex.nodes=2)
 	print(p)
 	dev.off()
 }
