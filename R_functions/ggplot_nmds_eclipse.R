@@ -25,10 +25,10 @@ veganCovEllipse<-function (cov, center = c(0, 0), scale = 1, npoints = 100)
 
 X1<-ggplot(data = NMDS, aes(MDS1, MDS2)) + geom_point(aes(color = Treatment),size=1.5,alpha=0.75) +
     geom_path(data=df_ell, aes(x=MDS1, y=MDS2,colour=group), size=2, linetype=5)+
-    theme_classic()+ theme(axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid')) +
+    theme_classic()+ theme(axis.line.x = element_line(colour = 'black', size=1, linetype='solid'),axis.line.y = element_line(colour = 'black', size=1, linetype='solid')) +
     theme(aspect.ratio=1)+
     scale_color_manual(values=COLORS) +
-    theme(axis.text.x=element_text(size=18),axis.text.y=element_text(size=18),axis.title.x=element_text(size=18),axis.title.y=element_text(size=18))+theme(legend.title=element_blank(), legend.text=element_text(size=18))
+    theme(axis.text.x=element_text(size=26, face = "bold"),axis.text.y=element_text(size=26, face = "bold"),axis.title.x=element_text(size=30, face= "bold"),axis.title.y=element_text(size=30, face="bold"))+theme(legend.title=element_blank(), legend.text=element_text(size=22), legend.position=c(1.03,0), legend.justification=c(1,0))
 X1    
 }
 
