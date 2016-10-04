@@ -71,7 +71,7 @@ for (i in unique(data.frame(sample_data(physeq))$foam.type)){
 	sp_merged<-merge(sp_melt,rho.melt,by=c("Var1","Var2"))
 	ds_merged<-merge(ds_melt, d.melt,by=c("Var1","Var2"))
 	merged<-merge(sp_merged, ds_merged, by=c("Var1", "Var2"))
-	merged<-subset(merged, spearman_qval < 0.05 | hoeffding_qval < 0.05)
+	merged<-subset(merged, spearman_qval < 0.05 | hoeffding_qval < 0.05 | is.na(spearman_qval) | is.na(hoeffding_qval))
 
 	merged$foam.type<-i
 	combined_barn_cc<-rbind(combined_barn_cc, merged)
