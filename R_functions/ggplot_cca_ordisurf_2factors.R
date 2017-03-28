@@ -3,13 +3,13 @@
 ggplot.cca.ordisurf.2f<-function(CCA, DF_2F, COLORS, ORDI, GRADIENT){
 scrs <- data.frame(scores(CCA, display="sites"))
 CAP1<-scrs$CAP1
-MDS1<-scrs$MDS1
+CAP2<-scrs$CAP2
 
-cca.df<-data.frame(CAP1,MDS1,DF_2F)
+cca.df<-data.frame(CAP1,CAP2,DF_2F)
 print(names(cca.df))
 
 X1<-ggplot() +
-geom_point(data = cca.df, aes_string(x="CAP1", y="MDS1", fill = colnames(cca.df)[3], shape = colnames(cca.df)[4]) ,size=3,alpha=0.75) + 
+geom_point(data = cca.df, aes_string(x="CAP1", y="CAP2", fill = colnames(cca.df)[3], shape = colnames(cca.df)[4]) ,size=3,alpha=0.75) + 
 scale_shape_manual(values=c(21:25)) +
 scale_fill_manual(values=c(COLORS), guide = guide_legend(override.aes = list(shape = 23)))+
 stat_contour(data = ORDI, aes(x = x, y = y, z = z, color = ..level.., binwidth = 2)) +
