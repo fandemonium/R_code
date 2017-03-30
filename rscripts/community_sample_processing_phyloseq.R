@@ -44,6 +44,10 @@ totu<-t(data.frame(otu_table(data.phy))) #transpose subsetted otu table so that 
 
 si$n1 <- rowSums(totu == 1) #counts of singletons in each sample
 si$C <- 1-(si$n1 / si$sample_sums) #calculate Good's coverage
+si$SAMPLES <- row.names(si)
+## save the sample coverage information to file
+print("Saving the sample coverage information as a text file in current directory ... ")
+write.table(si, "data.taxmin5.sample_goods_coverage.txt", sep = "\t", quote = F, row.names = F)
 
 ## plot Good's coverage histogram
 print("Generating histogram on Good's estimated coverage to current directory ... ")
