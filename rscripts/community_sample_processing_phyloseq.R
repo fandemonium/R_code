@@ -1,3 +1,7 @@
+## usage: in terminal
+##  Rscript ~/Documents/repos/R_code/rscripts/community_sample_processing_phyloseq.R ../R/cdhit_otu_table_wide.txt ../R/cdhit_taxa_table_w_repseq.txt
+
+
 library(phyloseq)
 library(vegan)
 
@@ -22,13 +26,13 @@ data.phy<-phyloseq(otu_table(as.matrix(otu),taxa_are_rows=T), tax_table(as.matri
 # check phyloseq object size
 print("the phyloseq object contains: ")
 data.phy
-print("saving raw sequence phyloseq object to current directory ... "
+print("saving raw sequence phyloseq object to current directory ... ")
 saveRDS(data.phy, "raw_sequence_phyloseq.RDS")
 
 ## get rid of any taxa that summing up to be less than 5 across all samples
 data.taxmin5.phy<-prune_taxa(taxa_sums(data.phy) >= 5, data.phy)
-data.taxmin5.phy<-prune_sample(sample_sums(data.taxmin5.phy) > 0, data.taxmin5.phy) #get rid of samples with all 0's, if it exists
-print("saving phyloseq object with taxa sum >= 5 across all samples to current directory ... "
+data.taxmin5.phy<-prune_samples(sample_sums(data.taxmin5.phy) > 0, data.taxmin5.phy) #get rid of samples with all 0's, if it exists
+print("saving phyloseq object with taxa sum >= 5 across all samples to current directory ... ")
 saveRDS(data.taxmin5.phy, "raw_sequence_phyloseq.RDS")
 
 ## save the histogram of sample sequencing depth distribution
@@ -39,7 +43,7 @@ dev.off()
 
 ## calculate Good's coverage for each sample  
 si <- data.frame(sample_sums(data.taxmin5.phy)) #get sample sums
-names(si) <- "sample_sums")
+names(si) <- "sample_sums"
 totu<-t(data.frame(otu_table(data.phy))) #transpose subsetted otu table so that samples are in row
 
 si$n1 <- rowSums(totu == 1) #counts of singletons in each sample
@@ -51,7 +55,7 @@ write.table(si, "data.taxmin5.sample_goods_coverage.txt", sep = "\t", quote = F,
 
 ## plot Good's coverage histogram
 print("Generating histogram on Good's estimated coverage to current directory ... ")
-pdf("data.taxmin5.goods_coverage_hist.pdf"
+pdf("data.taxmin5.goods_coverage_hist.pdf")
 hist(si$C, breaks = nrow(si)/2)
 dev.off()
 
