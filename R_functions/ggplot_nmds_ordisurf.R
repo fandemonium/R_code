@@ -33,8 +33,8 @@ veganCovEllipse<-function (cov, center = c(0, 0), scale = 1, npoints = 100)
 
 X1<-ggplot() +
 geom_raster(data=Ordi, aes(x=x, y=y, fill = z))+
-geom_contour(data=Ordi, aes(x=x, y=y, z=z, binwidth=2), color="white")+
-scale_fill_gradient(high = "darkgrey", low = "white") +
+geom_contour(data=Ordi, aes(x=x, y=y, z=z), color="white")+
+scale_fill_gradient(high = "darkgrey", low = "white", breaks=c(min(Ordi$z), (min(Ordi$z)+max(Ordi$z))/2, max(Ordi$z)), labels=c(round(min(Ordi$z),2), round(((min(Ordi$z)+max(Ordi$z))/2), 2), round(max(Ordi$z),2))) +
 geom_point(data = NMDS, aes(x=MDS1, y=MDS2, color = Treatment) ,size=3,alpha=0.75) + 
 #scale_shape_manual(values=c(21:25)) +
 #scale_fill_manual(values=COLORS)+
@@ -43,9 +43,10 @@ scale_color_manual(values=COLORS, labels=c("No-foam", "Crust", "Foam")) +
 theme_classic()+ theme(axis.line.x = element_line(colour = 'black', size=1, linetype='solid'),axis.line.y = element_line(colour = 'black', size=1, linetype='solid'))+
 theme(aspect.ratio=1) +
 labs(fill = "MPR", x = "MDS1", y= "MDS2") +
-theme(axis.text.x=element_text(size=26, face = "bold"),axis.text.y=element_text(size=26, face = "bold"),axis.title.x=element_text(size=30, face= "bold"),axis.title.y=element_text(size=30, face="bold"))+
+theme(axis.text.x=element_text(size=26, face = "bold", color = "black"),axis.text.y=element_text(size=26, face = "bold", color= "black"),axis.title.x=element_text(size=30, face= "bold"),axis.title.y=element_text(size=30, face="bold"))+
 guides(color=guide_legend(title=NULL)) +
-theme(legend.title = element_text(size = 20), legend.text=element_text(size=16), legend.position = "top", legend.justification=c(1,0), legend.background = element_rect(fill=(alpha = 0)))
+theme(legend.title = element_text(size = 18), legend.text=element_text(size=16), legend.position = "top", legend.justification=c(0.5,0.5), legend.background = element_rect(fill=(alpha = 0)))
+
 
 X1    
 }

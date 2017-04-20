@@ -6,7 +6,7 @@ ordi.sf<-function(nmds, env, SAMPLE_ID){
         NMDS<-data.frame(nmds$points)[, 1:2]
         NMDS$SAMPLES<-row.names(NMDS)
         NMDS.si<-merge(NMDS, env, by.x="SAMPLES", by.y=SAMPLE_ID)
-	env.sf<-ordisurf(NMDS.si[, c("MDS1", "MDS2")]~ env[, !names(env) %in% SAMPLE_ID], plot=F)
+	env.sf<-ordisurf(NMDS.si[, c("MDS1", "MDS2")]~ env[, !names(env) %in% SAMPLE_ID], plot=F, family=quasipoisson)
 	print(summary(env.sf))
 
 extract.xyz <- function(obj) {
