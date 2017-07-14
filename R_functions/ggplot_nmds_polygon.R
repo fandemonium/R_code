@@ -23,7 +23,7 @@ ggplot.NMDS.poly<-function(XX, YY, COLORS){
             scale_color_manual(values=COLORS) +
             scale_fill_manual(values=COLORS) +
             theme(axis.text.x=element_text(size=20),axis.text.y=element_text(size=20),axis.title.x=element_text(size=20),axis.title.y=element_text(size=20)) +
-            theme(legend.title=element_blank(),legend.text=element_text(size=15), legend.position = c(0.2, 0), legend.justification=c(1, 0))
+            theme(legend.title=element_blank(),legend.text=element_text(size=15), legend.position = c(0.3, 0.1), legend.justification=c(1, 0))
 	X1    
 }
 

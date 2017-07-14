@@ -15,6 +15,7 @@ mds.envfit.arrows <- function(XX, YY, SAMPLE_ID){
 		NMDS.temp<-NMDS.si[, c("MDS1", "MDS2", i)]
 		NMDS.temp<-subset(NMDS.temp, !is.na(NMDS.temp[, i]))
 		NMDS.envfit<-envfit(NMDS.temp[, c("MDS1", "MDS2")] ~ NMDS.temp[, i], perm = 999)
+		print(NMDS.envfit)
 		temp<-data.frame(NMDS.envfit$vectors$arrows * sqrt(NMDS.envfit$vector$r), NMDS.envfit$vectors$pval)
 		row.names(temp)<-i
 		nmds.envfit.df<-rbind(nmds.envfit.df, temp)
