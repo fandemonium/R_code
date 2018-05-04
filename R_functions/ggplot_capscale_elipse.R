@@ -1,6 +1,6 @@
-##plot capscale output using ggplot modified from RJW's code
+##plot capscale output using ggplot2 modified from RJW's code
 ## this capscale output with ellipse function will take experiment factors containing NA's 
-## and plot them using one big metaMDS output. 
+## and plot them using one big pcoa output. 
 
 ggplot.capscale.ellipse<-function(CA, FACTOR, COLORS){
 	library(ggplot2)
