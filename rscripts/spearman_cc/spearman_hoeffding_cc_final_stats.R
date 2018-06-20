@@ -3,7 +3,6 @@ library(Hmisc)
 library(plyr)
 library(reshape2)
 library(igraph)
-library(fdrtool)
 
 source("~/Documents/repos/R_code/R_functions/network_effective_size.R")
 
