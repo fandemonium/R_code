@@ -1,4 +1,4 @@
-#usage: Rscript get_neon_raw_tables.R "DP1.20086.001"
+#usage: Rscript get_neon_csv_w_rawseq_urls.R "DP1.20086.001"
 
 library(httr)
 library(jsonlite)
